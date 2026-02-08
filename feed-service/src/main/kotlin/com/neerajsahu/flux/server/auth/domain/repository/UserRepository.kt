@@ -1,6 +1,6 @@
-package com.neerajsahu.flux.server.auth
+package com.neerajsahu.flux.server.auth.domain.repository
 
-import com.neerajsahu.flux.server.auth.model.User
+import com.neerajsahu.flux.server.auth.domain.model.User
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

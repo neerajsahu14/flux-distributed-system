@@ -1,6 +1,11 @@
-package com.neerajsahu.flux.server.auth
+package com.neerajsahu.flux.server.auth.service
 
-import com.neerajsahu.flux.server.auth.model.*
+import com.neerajsahu.flux.server.auth.api.dto.AuthResponse
+import com.neerajsahu.flux.server.auth.api.dto.LoginRequest
+import com.neerajsahu.flux.server.auth.api.dto.RegisterRequest
+import com.neerajsahu.flux.server.auth.api.dto.UserResponse
+import com.neerajsahu.flux.server.auth.domain.model.User
+import com.neerajsahu.flux.server.auth.domain.repository.UserRepository
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
@@ -10,7 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.nio.charset.StandardCharsets
 import java.time.Instant
-import java.util.*
+import java.util.Date
 
 @Service
 class AuthService(
@@ -44,7 +49,7 @@ class AuthService(
     }
 
     fun login(req: LoginRequest): AuthResponse {
-        // Authentication Manager handle karega password matching
+        // Authentication Manager handles password matching
         authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(req.email, req.password)
         )
@@ -72,7 +77,7 @@ class AuthService(
         )
     }
 
-    // Helper method (jo tumhare controller mein use ho raha tha)
+    // Helper method (used in controllers)
     fun getUserResponse(user: User) = UserResponse(
         id = user.id!!,
         username = user._username,

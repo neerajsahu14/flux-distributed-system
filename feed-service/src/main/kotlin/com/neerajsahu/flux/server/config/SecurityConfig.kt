@@ -15,7 +15,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val jwtAuthFilter: JwtAuthFilter, // Isko baad mein uncomment karna jab filter ban jaye
+    private val jwtAuthFilter: JwtAuthFilter,
     private val authenticationProvider: AuthenticationProvider
 ) {
 
@@ -26,8 +26,8 @@ class SecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/api/auth/**", "/error", "/actuator/**").permitAll() // Public endpoints
-                    .anyRequest().authenticated() // Baaki sab locked
+                    .requestMatchers("/api/v1/auth/**", "/error", "/actuator/**").permitAll() // Public endpoints
+                    .anyRequest().authenticated() // anything else locked
             }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

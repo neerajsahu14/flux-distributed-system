@@ -1,6 +1,6 @@
 package com.neerajsahu.flux.server.config
 
-import com.neerajsahu.flux.server.auth.UserRepository
+import com.neerajsahu.flux.server.auth.domain.repository.UserRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager

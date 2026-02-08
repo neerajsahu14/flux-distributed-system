@@ -52,7 +52,7 @@ dependencies {
         testImplementation("org.springframework.security:spring-security-test")
 
         // cloudinary (CDN: content delivery network)
-        implementation("com.cloudinary:cloudinary-http44:1.38.0")
+        implementation("com.cloudinary:cloudinary-http44:1.39.0")
     }
 }
 

@@ -1,6 +1,6 @@
 package com.neerajsahu.flux.server.config
 
-import com.neerajsahu.flux.server.auth.UserRepository
+import com.neerajsahu.flux.server.auth.domain.repository.UserRepository
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import jakarta.servlet.FilterChain
@@ -20,6 +20,7 @@ class JwtAuthFilter(
     @Value("\${jwt.secret:dev-secret-please-change-to-something-very-long-and-secure}") private val jwtSecret: String
 ) : OncePerRequestFilter() {
 
+
     private val key by lazy { Keys.hmacShaKeyFor(jwtSecret.toByteArray(StandardCharsets.UTF_8)) }
 
     override fun doFilterInternal(
@@ -29,13 +30,16 @@ class JwtAuthFilter(
     ) {
         val authHeader = request.getHeader("Authorization")
 
+        // 1. Basic Validation
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response)
             return
         }
 
         val jwt = authHeader.substring(7)
+
         try {
+            // 2. Token Parsing
             val claims = Jwts.parser()
                 .verifyWith(key)
                 .build()
@@ -44,22 +48,27 @@ class JwtAuthFilter(
 
             val userId = claims.subject.toLong()
 
-            if (SecurityContextHolder.getContext().authentication == null) {
-                val user = userRepository.findById(userId).orElseThrow()
-                val authToken = UsernamePasswordAuthenticationToken(
-                    user,
-                    null,
-                    user.authorities
-                )
-                authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
-                SecurityContextHolder.getContext().authentication = authToken
+            // 3. Authentication Check
+            if (userId != null && SecurityContextHolder.getContext().authentication == null) {
 
-                // Add user ID to request attributes for easy access in controllers
-                request.setAttribute("userId", userId)
+
+                val user = userRepository.findById(userId).orElse(null)
+
+                if (user != null) {
+                    val authToken = UsernamePasswordAuthenticationToken(
+                        user, // Principal: whole User object
+                        null, // Credentials: Null (dine JWT verify)
+                        user.authorities
+                    )
+
+                    authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
+
+
+                    SecurityContextHolder.getContext().authentication = authToken
+                }
             }
         } catch (e: Exception) {
-            // Handle invalid token
-            SecurityContextHolder.clearContext()
+
         }
 
         filterChain.doFilter(request, response)
