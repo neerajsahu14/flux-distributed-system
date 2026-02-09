@@ -22,24 +22,32 @@ data class Post(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    val author: User,
+    val author: User = User(),
 
     @Column(columnDefinition = "TEXT")
-    val content: String? = null, // NOTE: DB me column ka naam 'content' hai
+    var content: String? = null,
 
     @Column(name = "request_id", unique = true, nullable = false)
-    val requestId: String,
+    val requestId: String = "",
 
     @Column(name = "created_at")
     val createdAt: Instant = Instant.now(),
 
+    @Column(name = "updated_at")
+    var updatedAt: Instant = Instant.now(),
+
     @Column(name = "like_count")
     var likeCount: Int = 0,
+
+    @Column(name = "share_count")
+    var shareCount: Int = 0,
 
     @Column(name = "attachment_count")
     var attachmentCount: Int = 0,
 
-    // One-to-Many Relationship (Code me access karne ke liye)
+    @Column(name = "isvalid")
+    var isValid: Boolean = true,
+
     @OneToMany(mappedBy = "post", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     var attachments: MutableList<PostAttachment> = mutableListOf()
 )

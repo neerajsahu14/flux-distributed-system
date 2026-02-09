@@ -68,7 +68,8 @@ class JwtAuthFilter(
                 }
             }
         } catch (e: Exception) {
-
+            println("JWT Error: ${e.message}")
+            SecurityContextHolder.clearContext()
         }
 
         filterChain.doFilter(request, response)
