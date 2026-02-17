@@ -16,6 +16,8 @@ build/
 .env
 *.properties
 /src/main/resources/application.properties
+!.env.example
+!**/src/main/resources/application-*.properties
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/

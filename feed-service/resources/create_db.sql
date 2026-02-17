@@ -65,7 +65,7 @@ CREATE TABLE interactions (
     );
 
 -- Index for fast lookup: "is i liked that post?"
-CREATE INDEX IF NOT EXISTS idx_interaction_check ON interactions(user_id, post_id, action_type);
+CREATE INDEX IF NOT EXISTS idx_interaction_check ON interactions(user_id, post_id, action_type) WHERE isValid=true;
 
 -- POST ATTACHMENTS (depends on posts)
 CREATE TABLE post_attachments (
@@ -89,9 +89,10 @@ CREATE TABLE feed_items (
     user_id BIGINT NOT NULL, -- who's post
     post_id BIGINT NOT NULL, -- what client will see
     created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Sorting
+    isValid BOOLEAN default true,
 
     CONSTRAINT fk_feed_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_feed_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_feed_user_created ON feed_items(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_feed_user_created ON feed_items(user_id, created_at DESC) WHERE isValid = true;
