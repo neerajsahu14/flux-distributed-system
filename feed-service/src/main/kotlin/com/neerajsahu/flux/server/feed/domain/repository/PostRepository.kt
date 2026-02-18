@@ -46,4 +46,6 @@ interface PostRepository : JpaRepository<Post, Long> {
     """)
     fun findPostsWithAttachmentsByIds(postIds: List<Long>): List<Post>
 
+    @Query("SELECT COUNT(p) FROM Post p WHERE p.author.id = :authorId AND p.isValid = true")
+    fun countByAuthorId(authorId: Long): Long
 }
