@@ -140,6 +140,15 @@ class FeedService(
         )
     }
 
+    fun getTimelineFeed(userId: Long, page: Int, size: Int): List<PostResponse> {
+        val pageable = PageRequest.of(page, size)
+
+        // Asli magic yahan hai - Smart Query call ki
+        val postsPage = postRepository.findTimelinePosts(userId, pageable)
+
+        return postsPage.content.map { mapToResponse(it) }
+    }
+
     // ==================== UPDATE ====================
     @Transactional
     fun updatePost(user: User, postId: Long, req: UpdatePostRequest): PostResponse {
@@ -174,5 +183,18 @@ class FeedService(
         postRepository.save(post)
 
         return true
+    }
+    private fun mapToResponse(post: Post): PostResponse {
+        val attachment = if (post.attachments.isNotEmpty()) post.attachments[0] else null
+        val displayImageUrl = attachment?.thumbnailUrl ?: attachment?.contentUrl ?: ""
+
+        return PostResponse(
+            id = post.id!!,
+            caption = post.content,
+            imageUrl = displayImageUrl,
+            author = authService.getUserResponse(post.author),
+            createdAt = post.createdAt.toString(),
+            likeCount = post.likeCount,
+        )
     }
 }

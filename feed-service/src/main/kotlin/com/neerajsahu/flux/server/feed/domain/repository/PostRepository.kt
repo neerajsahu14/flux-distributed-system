@@ -48,4 +48,16 @@ interface PostRepository : JpaRepository<Post, Long> {
 
     @Query("SELECT COUNT(p) FROM Post p WHERE p.author.id = :authorId AND p.isValid = true")
     fun countByAuthorId(authorId: Long): Long
+
+    @Query("""
+        SELECT p FROM Post p 
+        WHERE p.author.id IN (
+            SELECT f.id.followeeId FROM Follow f 
+            WHERE f.id.followerId = :userId 
+            AND f.isValid = true
+        )
+        ORDER BY p.createdAt DESC
+    """)
+    fun findTimelinePosts(userId: Long, pageable: Pageable): Page<Post>
+    
 }

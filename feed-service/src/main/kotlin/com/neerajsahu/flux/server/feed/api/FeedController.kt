@@ -62,6 +62,15 @@ class FeedController(
         return ResponseEntity.ok(feedService.getPostDetail(postId, user))
     }
 
+    @GetMapping("/timeline")
+    fun getTimelineFeed(
+        @AuthenticationPrincipal user: User,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<List<PostResponse>> {
+        return ResponseEntity.ok(feedService.getTimelineFeed(user.id!!, page, size))
+    }
+
     // ==================== UPDATE ====================
     @PutMapping("/post/{postId}")
     fun updatePost(
