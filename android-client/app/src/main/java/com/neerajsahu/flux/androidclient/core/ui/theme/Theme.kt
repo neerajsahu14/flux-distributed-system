@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.ui.theme
+package com.neerajsahu.flux.androidclient.core.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
