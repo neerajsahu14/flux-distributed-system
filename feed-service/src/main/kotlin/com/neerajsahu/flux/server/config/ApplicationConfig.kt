@@ -25,13 +25,9 @@ class ApplicationConfig(private val repository: UserRepository) {
 
     @Bean
     fun authenticationProvider(): AuthenticationProvider {
-        val authProvider = DaoAuthenticationProvider(userDetailsService()) // Constructor empty rakho
-
-        // FIX: Property syntax (.userDetailsService =) mat use karo.
-        // Explicit Setter use karo kyunki Getter protected hai.
-
+        val authProvider = DaoAuthenticationProvider()
+        authProvider.setUserDetailsService(userDetailsService())
         authProvider.setPasswordEncoder(passwordEncoder())
-
         return authProvider
     }
 

@@ -30,7 +30,6 @@ class JwtAuthFilter(
     ) {
         val authHeader = request.getHeader("Authorization")
 
-        // 1. Basic Validation
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response)
             return
@@ -39,7 +38,6 @@ class JwtAuthFilter(
         val jwt = authHeader.substring(7)
 
         try {
-            // 2. Token Parsing
             val claims = Jwts.parser()
                 .verifyWith(key)
                 .build()
@@ -48,22 +46,20 @@ class JwtAuthFilter(
 
             val userId = claims.subject.toLong()
 
-            // 3. Authentication Check
-            if (userId != null && SecurityContextHolder.getContext().authentication == null) {
+            // Set userId attribute for @RequestAttribute usage
+            request.setAttribute("userId", userId)
 
-
+            if (SecurityContextHolder.getContext().authentication == null) {
                 val user = userRepository.findById(userId).orElse(null)
 
                 if (user != null) {
                     val authToken = UsernamePasswordAuthenticationToken(
-                        user, // Principal: whole User object
-                        null, // Credentials: Null (dine JWT verify)
+                        user,
+                        null,
                         user.authorities
                     )
 
                     authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
-
-
                     SecurityContextHolder.getContext().authentication = authToken
                 }
             }

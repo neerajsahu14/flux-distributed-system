@@ -31,6 +31,6 @@ data class Follow(
     @Column(name = "created_at")
     val createdAt: Instant = Instant.now(),
 
-    @Column(name = "is_valid")
+    @Column(name = "isvalid")
     var isValid: Boolean = true
 )

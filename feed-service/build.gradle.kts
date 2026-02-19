@@ -1,7 +1,8 @@
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
-    id("org.springframework.boot") version "4.0.2"
+    kotlin("jvm") version "2.1.0"
+    kotlin("plugin.spring") version "2.1.0"
+    kotlin("plugin.jpa") version "2.1.0"
+    id("org.springframework.boot") version "3.4.2"
     id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -19,47 +20,45 @@ repositories {
 }
 
 dependencies {
-    dependencies {
-        // 1. CORE WEB (for building APIs)
-        implementation("org.springframework.boot:spring-boot-starter-web")
+    // 1. CORE WEB (for building APIs)
+    implementation("org.springframework.boot:spring-boot-starter-web")
 
-        // 2. DATABASE & ORM (Postgres + Hibernate)
-        implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-        implementation("org.springframework.boot:spring-boot-starter-actuator")
-        runtimeOnly("org.postgresql:postgresql") // Driver
+    // 2. DATABASE & ORM (Postgres + Hibernate)
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    runtimeOnly("org.postgresql:postgresql") // Driver
 
-        // 3. SECURITY & AUTH (JWT logic)
-        implementation("org.springframework.boot:spring-boot-starter-security")
-        // JJWT library for JWTs
-        implementation("io.jsonwebtoken:jjwt-api:0.13.0")
-        runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
-        runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
+    // 3. SECURITY & AUTH (JWT logic)
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    // JJWT library for JWTs
+    implementation("io.jsonwebtoken:jjwt-api:0.13.0")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
 
-        // 4. KOTLIN (Data classes & JSON)
-        implementation("com.fasterxml.jackson.module:jackson-module-kotlin") // critical for JSON parsing
-        implementation("org.jetbrains.kotlin:kotlin-reflect") // required for Spring to read Kotlin classes
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    // 4. KOTLIN (Data classes & JSON)
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin") // critical for JSON parsing
+    implementation("org.jetbrains.kotlin:kotlin-reflect") // required for Spring to read Kotlin classes
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-        // 5. VALIDATION (input checks - @NotNull, @Email, etc.)
-        // Important to prevent invalid user data
-        implementation("org.springframework.boot:spring-boot-starter-validation")
+    // 5. VALIDATION (input checks - @NotNull, @Email, etc.)
+    // Important to prevent invalid user data
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 
-        // 6. DEV TOOLS (optional: fast reload)
-        developmentOnly("org.springframework.boot:spring-boot-devtools")
+    // 6. DEV TOOLS (optional: fast reload)
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-        // 7. TESTING (JUnit 5 is usually included)
-        testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation("org.springframework.security:spring-security-test")
+    // 7. TESTING (JUnit 5 is usually included)
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
 
-        // cloudinary (CDN: content delivery network)
-        implementation("com.cloudinary:cloudinary-http44:1.39.0")
-    }
+    // cloudinary (CDN: content delivery network)
+    implementation("com.cloudinary:cloudinary-http44:1.39.0")
 }
 
 kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
-        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+        freeCompilerArgs.addAll("-Xjsr305=strict")
     }
 }
 
