@@ -12,15 +12,17 @@ import org.springframework.stereotype.Repository
 @Repository
 interface InteractionRepository : JpaRepository<Interaction, Long> {
 
+    fun existsByRequestId(requestId: String): Boolean
+
     @Query("""
         SELECT i FROM Interaction i 
         WHERE i.user.id = :userId 
         AND i.post.id = :postId 
-        AND i.actionType = :actionType 
-        AND i.isValid = true
+        AND i.actionType = :actionType
     """)
-    fun findByUserIdAndPostIdAndActionType(userId: Long, postId: Long, actionType: ActionType): Interaction?
+    fun findExistingInteraction(userId: Long, postId: Long, actionType: ActionType): Interaction?
 
+    // 3. READ QUERIES (UI ke liye)
     @Query("""
         SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END 
         FROM Interaction i 
@@ -31,7 +33,6 @@ interface InteractionRepository : JpaRepository<Interaction, Long> {
     """)
     fun existsByUserIdAndPostIdAndActionType(userId: Long, postId: Long, actionType: ActionType): Boolean
 
-    // Join from Interaction to Post with stable ordering by interaction createdAt
     @Query(
         value = """
             SELECT p FROM Interaction i 
@@ -52,8 +53,4 @@ interface InteractionRepository : JpaRepository<Interaction, Long> {
         """
     )
     fun findPostsByUserIdAndActionType(userId: Long, actionType: ActionType, pageable: Pageable): Page<Post>
-
-    @Query("SELECT COUNT(i) FROM Interaction i WHERE i.post.id = :postId AND i.actionType = :actionType AND i.isValid = true")
-    fun countByPostIdAndActionType(postId: Long, actionType: ActionType): Long
 }
-

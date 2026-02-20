@@ -27,11 +27,12 @@ data class Interaction(
     @Column(name = "action_type", nullable = false)
     val actionType: ActionType = ActionType.LIKED,
 
+    @Column(name = "request_id", unique = true, nullable = false)
+    var requestId: String = "",
+
     @Column(name = "created_at")
     val createdAt: Instant = Instant.now(),
 
     @Column(name = "isvalid")
-    val isValid: Boolean = true
+    var isValid: Boolean = true
 )
-
-

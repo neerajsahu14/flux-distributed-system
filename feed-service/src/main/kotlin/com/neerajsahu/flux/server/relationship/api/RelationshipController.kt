@@ -3,6 +3,7 @@ package com.neerajsahu.flux.server.relationship.api
 import com.neerajsahu.flux.server.auth.domain.model.User
 import com.neerajsahu.flux.server.auth.api.dto.UserResponse
 import com.neerajsahu.flux.server.relationship.api.dto.FollowActionResponse
+import com.neerajsahu.flux.server.relationship.api.dto.FollowRequest
 import com.neerajsahu.flux.server.relationship.api.dto.ProfileStatsResponse
 import com.neerajsahu.flux.server.relationship.api.dto.RelationshipInfoResponse
 import com.neerajsahu.flux.server.relationship.service.FollowService
@@ -20,9 +21,10 @@ class RelationshipController(
     @PostMapping("/follow/{targetUserId}")
     fun toggleFollow(
         @PathVariable targetUserId: Long,
+        @RequestBody request: FollowRequest,
         @AuthenticationPrincipal currentUser: User
     ): ResponseEntity<FollowActionResponse> {
-        val status = followService.toggleFollow(currentUser, targetUserId)
+        val status = followService.toggleFollow(currentUser, targetUserId,request.requestId)
         return ResponseEntity.ok(FollowActionResponse(status, targetUserId))
     }
 
@@ -46,8 +48,6 @@ class RelationshipController(
         return ResponseEntity.ok(followService.getFollowing(userId, page, size))
     }
 
-    // 4. Get Profile Stats (Counts + IsFollowing status)
-    // Jab kisi ki profile khologe, ye API call hogi header setup karne ke liye
     @GetMapping("/info/{targetUserId}")
     fun getRelationshipInfo(
         @PathVariable targetUserId: Long,

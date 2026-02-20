@@ -12,3 +12,7 @@ data class RelationshipInfoResponse(
     val followingCount: Long,
     val isFollowing: Boolean // Button "Follow" dikhaye ya "Unfollow"?
 )
+
+data class FollowRequest(
+    val requestId: String
+)

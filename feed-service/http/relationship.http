@@ -1,0 +1,33 @@
+### Follow User
+POST http://localhost:8080/api/v1/relationship/follow/1
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "requestId": "req-12341"
+}
+
+### Unfollow User
+POST http://localhost:8080/api/v1/relationship/follow/1
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "requestId": "req-12341"
+}
+
+### Get Followers
+GET http://localhost:8080/api/v1/relationship/followers/1?page=0&size=20
+Authorization: Bearer {{auth_token}}
+
+### Get Following
+GET http://localhost:8080/api/v1/relationship/following/1?page=0&size=20
+Authorization: Bearer {{auth_token}}
+
+### Get Relationship Info
+GET http://localhost:8080/api/v1/relationship/info/2
+Authorization: Bearer {{auth_token}}
+
+### Get Profile Stats
+GET http://localhost:8080/api/v1/relationship/stats/2
+Authorization: Bearer {{auth_token}}

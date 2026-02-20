@@ -9,6 +9,7 @@ import com.neerajsahu.flux.server.feed.domain.repository.PostRepository
 import com.neerajsahu.flux.server.interaction.api.dto.InteractionResponse
 import com.neerajsahu.flux.server.interaction.api.dto.ResponseActionType
 import com.neerajsahu.flux.server.interaction.domain.model.ActionType
+import com.neerajsahu.flux.server.interaction.domain.model.Interaction
 import com.neerajsahu.flux.server.interaction.domain.repository.InteractionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
@@ -21,184 +22,144 @@ class InteractionService(
     private val postRepository: PostRepository,
     private val authService: AuthService,
     private val postMapper: PostMapper,
-    private val postUtils: PostUtils,
-    private val interactionHelper: InteractionHelper
+    private val postUtils: PostUtils
 ) {
     private val logger = LoggerFactory.getLogger(InteractionService::class.java)
 
-    // ==================== LIKE / UNLIKE ====================
     @Transactional
-    fun likePost(user: User, postId: Long): InteractionResponse {
+    fun likePost(user: User, postId: Long, requestId: String): InteractionResponse {
         val post = postUtils.getValidPostOrThrow(postId)
 
-        // Use atomic helper to handle race condition
-        return when (val result = interactionHelper.tryCreateInteraction(user, post, ActionType.LIKED)) {
-            is InteractionResult.Created -> {
-                // Update like count
+        // Idempotency: Ignore duplicate requests from client retry
+        if (interactionRepository.existsByRequestId(requestId)) {
+            return InteractionResponse(postId, ResponseActionType.LIKED, true, "Already processed", post.likeCount.toLong())
+        }
+
+        val existing = interactionRepository.findExistingInteraction(user.id!!, postId, ActionType.LIKED)
+
+        if (existing != null) {
+            if (!existing.isValid) {
+                existing.isValid = true
+                existing.requestId = requestId // Bind new requestId to the toggle action
+                interactionRepository.save(existing)
+
                 post.likeCount += 1
                 postRepository.save(post)
+            }
+        } else {
+            val newLike = Interaction(user = user, post = post, actionType = ActionType.LIKED, requestId = requestId, isValid = true)
+            interactionRepository.save(newLike)
 
-                InteractionResponse(
-                    postId = postId,
-                    actionType = ResponseActionType.LIKED,
-                    success = true,
-                    message = "Post liked successfully",
-                    currentCount = post.likeCount.toLong()
-                )
-            }
-            is InteractionResult.AlreadyExists -> {
-                InteractionResponse(
-                    postId = postId,
-                    actionType = ResponseActionType.LIKED,
-                    success = false,
-                    message = "Already liked",
-                    currentCount = post.likeCount.toLong()
-                )
-            }
-            is InteractionResult.Error -> {
-                throw result.exception
-            }
+            post.likeCount += 1
+            postRepository.save(post)
         }
+
+        return InteractionResponse(postId, ResponseActionType.LIKED, true, "Post liked successfully", post.likeCount.toLong())
     }
 
     @Transactional
-    fun unlikePost(user: User, postId: Long): InteractionResponse {
+    fun unlikePost(user: User, postId: Long, requestId: String): InteractionResponse {
         val post = postUtils.getValidPostOrThrow(postId)
 
-        val deleted = interactionHelper.tryDeleteInteraction(user.id!!, postId, ActionType.LIKED)
+        if (interactionRepository.existsByRequestId(requestId)) {
+            return InteractionResponse(postId, ResponseActionType.UNLIKED, true, "Already processed", post.likeCount.toLong())
+        }
 
-        return if (deleted) {
-            // Update like count
+        val existing = interactionRepository.findExistingInteraction(user.id!!, postId, ActionType.LIKED)
+
+        if (existing != null && existing.isValid) {
+            existing.isValid = false // Soft delete
+            existing.requestId = requestId
+            interactionRepository.save(existing)
+
             post.likeCount = maxOf(0, post.likeCount - 1)
             postRepository.save(post)
-
-            InteractionResponse(
-                postId = postId,
-                actionType = ResponseActionType.UNLIKED,
-                success = true,
-                message = "Post unliked successfully",
-                currentCount = post.likeCount.toLong()
-            )
-        } else {
-            InteractionResponse(
-                postId = postId,
-                actionType = ResponseActionType.LIKED,
-                success = false,
-                message = "Post was not liked",
-                currentCount = post.likeCount.toLong()
-            )
         }
+
+        return InteractionResponse(postId, ResponseActionType.UNLIKED, true, "Post unliked successfully", post.likeCount.toLong())
     }
 
-    // ==================== BOOKMARK / UNBOOKMARK ====================
     @Transactional
-    fun bookmarkPost(user: User, postId: Long): InteractionResponse {
+    fun bookmarkPost(user: User, postId: Long, requestId: String): InteractionResponse {
         val post = postUtils.getValidPostOrThrow(postId)
 
-        // Use atomic helper to handle race condition
-        return when (val result = interactionHelper.tryCreateInteraction(user, post, ActionType.BOOKMARKED)) {
-            is InteractionResult.Created -> {
-                InteractionResponse(
-                    postId = postId,
-                    actionType = ResponseActionType.BOOKMARKED,
-                    success = true,
-                    message = "Post bookmarked successfully"
-                )
-            }
-            is InteractionResult.AlreadyExists -> {
-                InteractionResponse(
-                    postId = postId,
-                    actionType = ResponseActionType.BOOKMARKED,
-                    success = false,
-                    message = "Already bookmarked"
-                )
-            }
-            is InteractionResult.Error -> {
-                throw result.exception
-            }
+        if (interactionRepository.existsByRequestId(requestId)) {
+            return InteractionResponse(postId, ResponseActionType.BOOKMARKED, true, "Already processed", 0)
         }
-    }
 
-    @Transactional
-    fun unbookmarkPost(user: User, postId: Long): InteractionResponse {
-        // Validate post exists
-        postUtils.getValidPostOrThrow(postId)
+        val existing = interactionRepository.findExistingInteraction(user.id!!, postId, ActionType.BOOKMARKED)
 
-        val deleted = interactionHelper.tryDeleteInteraction(user.id!!, postId, ActionType.BOOKMARKED)
-
-        return if (deleted) {
-            InteractionResponse(
-                postId = postId,
-                actionType = ResponseActionType.UNBOOKMARKED,
-                success = true,
-                message = "Bookmark removed successfully"
-            )
+        if (existing != null) {
+            if (!existing.isValid) {
+                existing.isValid = true
+                existing.requestId = requestId
+                interactionRepository.save(existing)
+            }
         } else {
-            InteractionResponse(
-                postId = postId,
-                actionType = ResponseActionType.BOOKMARKED,
-                success = false,
-                message = "Post was not bookmarked"
-            )
+            val newBookmark = Interaction(user = user, post = post, actionType = ActionType.BOOKMARKED, requestId = requestId, isValid = true)
+            interactionRepository.save(newBookmark)
         }
+
+        return InteractionResponse(postId, ResponseActionType.BOOKMARKED, true, "Post bookmarked successfully", 0)
     }
 
-    // ==================== SHARE ====================
     @Transactional
-    fun sharePost(user: User, postId: Long): InteractionResponse {
+    fun unbookmarkPost(user: User, postId: Long, requestId: String): InteractionResponse {
         val post = postUtils.getValidPostOrThrow(postId)
 
-        // Try to create share interaction (may already exist for this user)
-        val result = interactionHelper.tryCreateInteraction(user, post, ActionType.SHARED)
+        if (interactionRepository.existsByRequestId(requestId)) {
+            return InteractionResponse(postId, ResponseActionType.UNBOOKMARKED, true, "Already processed", 0)
+        }
 
-        // Always increment share count (even if user already shared before)
-        // This allows counting multiple shares from same user over time
+        val existing = interactionRepository.findExistingInteraction(user.id!!, postId, ActionType.BOOKMARKED)
+
+        if (existing != null && existing.isValid) {
+            existing.isValid = false
+            existing.requestId = requestId
+            interactionRepository.save(existing)
+        }
+
+        return InteractionResponse(postId, ResponseActionType.UNBOOKMARKED, true, "Bookmark removed successfully", 0)
+    }
+
+    @Transactional
+    fun sharePost(user: User, postId: Long, requestId: String): InteractionResponse {
+        val post = postUtils.getValidPostOrThrow(postId)
+
+        if (interactionRepository.existsByRequestId(requestId)) {
+            return InteractionResponse(postId, ResponseActionType.SHARED, true, "Already processed", post.shareCount.toLong())
+        }
+
+        val newShare = Interaction(user = user, post = post, actionType = ActionType.SHARED, requestId = requestId, isValid = true)
+        interactionRepository.save(newShare)
+
         post.shareCount += 1
         postRepository.save(post)
 
-        if (result is InteractionResult.AlreadyExists) {
-            logger.debug("User ${user.id} already shared post $postId, incrementing count anyway")
-        }
-
-        return InteractionResponse(
-            postId = postId,
-            actionType = ResponseActionType.SHARED,
-            success = true,
-            message = "Post shared successfully",
-            currentCount = post.shareCount.toLong()
-        )
+        return InteractionResponse(postId, ResponseActionType.SHARED, true, "Post shared successfully", post.shareCount.toLong())
     }
 
-    // ==================== GET BOOKMARKED POSTS ====================
     @Transactional(readOnly = true)
     fun getBookmarkedPosts(user: User, page: Int, size: Int): List<PostResponse> {
         val pageable = PageRequest.of(page, size)
-        val postsPage = interactionRepository.findPostsByUserIdAndActionType(
-            user.id!!, ActionType.BOOKMARKED, pageable
-        )
+        val postsPage = interactionRepository.findPostsByUserIdAndActionType(user.id!!, ActionType.BOOKMARKED, pageable)
         return postUtils.mapPageToPostResponses(postsPage) { post ->
             postMapper.toPostResponse(post) { authService.getUserResponse(it) }
         }
     }
 
-    // ==================== GET LIKED POSTS ====================
     @Transactional(readOnly = true)
     fun getLikedPosts(user: User, page: Int, size: Int): List<PostResponse> {
         val pageable = PageRequest.of(page, size)
-        val postsPage = interactionRepository.findPostsByUserIdAndActionType(
-            user.id!!, ActionType.LIKED, pageable
-        )
+        val postsPage = interactionRepository.findPostsByUserIdAndActionType(user.id!!, ActionType.LIKED, pageable)
         return postUtils.mapPageToPostResponses(postsPage) { post ->
             postMapper.toPostResponse(post) { authService.getUserResponse(it) }
         }
     }
 
-    // ==================== CHECK INTERACTION STATUS ====================
-    fun isPostLikedByUser(userId: Long, postId: Long): Boolean {
-        return interactionRepository.existsByUserIdAndPostIdAndActionType(userId, postId, ActionType.LIKED)
-    }
+    fun isPostLikedByUser(userId: Long, postId: Long): Boolean =
+        interactionRepository.existsByUserIdAndPostIdAndActionType(userId, postId, ActionType.LIKED)
 
-    fun isPostBookmarkedByUser(userId: Long, postId: Long): Boolean {
-        return interactionRepository.existsByUserIdAndPostIdAndActionType(userId, postId, ActionType.BOOKMARKED)
-    }
+    fun isPostBookmarkedByUser(userId: Long, postId: Long): Boolean =
+        interactionRepository.existsByUserIdAndPostIdAndActionType(userId, postId, ActionType.BOOKMARKED)
 }

@@ -1,0 +1,59 @@
+### Like Post
+POST http://localhost:8080/api/v1/interaction/post/4/like
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "requestId": "req-12341"
+}
+
+### Unlike Post
+DELETE http://localhost:8080/api/v1/interaction/post/1/like
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "requestId": "req-12342"
+}
+
+### Bookmark Post
+POST http://localhost:8080/api/v1/interaction/post/1/bookmark
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "requestId": "req-12343"
+}
+
+### Unbookmark Post
+DELETE http://localhost:8080/api/v1/interaction/post/1/bookmark
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "requestId": "req-12344"
+}
+
+### Share Post
+POST http://localhost:8080/api/v1/interaction/post/1/share
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "requestId": "req-12345"
+}
+### Get Bookmarked Posts
+GET http://localhost:8080/api/v1/interaction/bookmarks?page=0&size=20
+Authorization: Bearer {{auth_token}}
+
+### Get Liked Posts
+GET http://localhost:8080/api/v1/interaction/likes?page=0&size=20
+Authorization: Bearer {{auth_token}}
+
+### Check if Post is Liked
+GET http://localhost:8080/api/v1/interaction/post/1/liked
+Authorization: Bearer {{auth_token}}
+
+### Check if Post is Bookmarked
+GET http://localhost:8080/api/v1/interaction/post/1/bookmarked
+Authorization: Bearer {{auth_token}}

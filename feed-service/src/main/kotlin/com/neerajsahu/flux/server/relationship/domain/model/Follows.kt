@@ -28,6 +28,9 @@ data class Follow(
     @JoinColumn(name = "followee_id")
     val followee: User,
 
+    @Column(name = "request_id", unique = true, nullable = false)
+    var requestId: String = "",
+
     @Column(name = "created_at")
     val createdAt: Instant = Instant.now(),
 

@@ -10,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 /**
  * Result of an atomic interaction operation.
@@ -44,7 +45,8 @@ class InteractionHelper(
             val interaction = Interaction(
                 user = user,
                 post = post,
-                actionType = actionType
+                actionType = actionType,
+                requestId = UUID.randomUUID().toString() // Generate unique request ID
             )
             val saved = interactionRepository.save(interaction)
             // Force flush to trigger constraint check immediately
@@ -55,20 +57,4 @@ class InteractionHelper(
             InteractionResult.AlreadyExists
         }
     }
-
-    /**
-     * Deletes an interaction if it exists.
-     * Returns true if deleted, false if not found.
-     */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun tryDeleteInteraction(userId: Long, postId: Long, actionType: ActionType): Boolean {
-        val existing = interactionRepository.findByUserIdAndPostIdAndActionType(userId, postId, actionType)
-        return if (existing != null) {
-            interactionRepository.delete(existing)
-            true
-        } else {
-            false
-        }
-    }
 }
-

@@ -20,7 +20,7 @@ CREATE TABLE posts (
        user_id BIGINT NOT NULL,
        content TEXT,
 
--- App will send  unique ID (UUID). if ID is the same, then we will ignore the request.
+        -- App will send  unique ID (UUID). if ID is the same, then we will ignore the request.
        request_id VARCHAR(64) UNIQUE,
 
        like_count INT DEFAULT 0,
@@ -34,38 +34,52 @@ CREATE TABLE posts (
        CONSTRAINT fk_post_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_posts_request_id ON posts(request_id);
+
 -- FOLLOWS TABLE (Refresher - Important for "Followed some people" logic)
 CREATE TABLE follows (
      follower_id BIGINT NOT NULL,
      followee_id BIGINT NOT NULL,
+
+    -- THE IDEMPOTENCY KEY
+     request_id VARCHAR(64) UNIQUE NOT NULL,
+
      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-     PRIMARY KEY (follower_id, followee_id),
      isValid BOOLEAN default true,
+
+     PRIMARY KEY (follower_id, followee_id),
      CONSTRAINT fk_follower FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
      CONSTRAINT fk_followee FOREIGN KEY (followee_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_follows_request_id ON follows(request_id);
+
 -- INTERACTIONS (depends on users and posts)
+DROP TABLE IF EXISTS interactions;
+
 CREATE TABLE interactions (
       id BIGSERIAL PRIMARY KEY,
       user_id BIGINT NOT NULL,
       post_id BIGINT NOT NULL,
+      action_type VARCHAR(20) NOT NULL, -- 'LIKED', 'SHARED', 'BOOKMARKED'
 
-    -- Action Enum
-      action_type VARCHAR(20) NOT NULL, -- Values: 'LIKED', 'SHARED', 'BOOKMARKED'
+    -- THE IDEMPOTENCY KEY (Must be NOT NULL)
+      request_id VARCHAR(64) UNIQUE NOT NULL,
 
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-
       isValid BOOLEAN default true,
-    -- one person can like one post, one time only
-      UNIQUE(user_id, post_id, action_type),
 
       CONSTRAINT fk_interact_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
       CONSTRAINT fk_interact_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
-    );
+);
 
--- Index for fast lookup: "is i liked that post?"
-CREATE INDEX IF NOT EXISTS idx_interaction_check ON interactions(user_id, post_id, action_type) WHERE isValid=true;
+-- 1. Idempotency fast lookup
+CREATE INDEX idx_interaction_request_id ON interactions(request_id);
+
+-- 2. The Soft-Delete Fix (Only enforce unique if isValid is true)
+CREATE UNIQUE INDEX idx_unique_active_interaction
+    ON interactions(user_id, post_id, action_type)
+    WHERE isValid = true;
 
 -- POST ATTACHMENTS (depends on posts)
 CREATE TABLE post_attachments (

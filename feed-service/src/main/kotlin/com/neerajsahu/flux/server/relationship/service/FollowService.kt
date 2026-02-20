@@ -12,6 +12,7 @@ import com.neerajsahu.flux.server.relationship.domain.repository.FollowRepositor
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class FollowService(
@@ -21,9 +22,13 @@ class FollowService(
 ) {
 
     @Transactional
-    fun toggleFollow(follower: User, followeeId: Long): String {
+    fun toggleFollow(follower: User, followeeId: Long, requestId: String): String { // FIX 1: Accept requestId
         if (follower.id == followeeId) {
             throw RuntimeException("You cannot follow yourself")
+        }
+
+        if (followRepository.existsByRequestId(requestId)) {
+            return "Already processed"
         }
 
         val followee = userRepository.findById(followeeId)
@@ -35,16 +40,19 @@ class FollowService(
             val follow = existingFollow.get()
 
             follow.isValid = !follow.isValid
+
+            follow.requestId = requestId
+
             followRepository.save(follow)
 
             if (follow.isValid) "Followed" else "Unfollowed"
 
         } else {
-
             val newFollow = Follow(
                 id = FollowId(follower.id, followeeId),
                 follower = follower,
                 followee = followee,
+                requestId = requestId,
                 isValid = true
             )
             followRepository.save(newFollow)

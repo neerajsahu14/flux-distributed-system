@@ -2,6 +2,7 @@ package com.neerajsahu.flux.server.interaction.api
 
 import com.neerajsahu.flux.server.auth.domain.model.User
 import com.neerajsahu.flux.server.feed.api.dto.PostResponse
+import com.neerajsahu.flux.server.interaction.api.dto.InteractionRequest
 import com.neerajsahu.flux.server.interaction.api.dto.InteractionResponse
 import com.neerajsahu.flux.server.interaction.service.InteractionService
 import org.springframework.http.ResponseEntity
@@ -14,50 +15,51 @@ class InteractionController(
     private val interactionService: InteractionService
 ) {
 
-    // ==================== LIKE / UNLIKE ====================
     @PostMapping("/post/{postId}/like")
     fun likePost(
         @PathVariable postId: Long,
+        @RequestBody request: InteractionRequest,
         @AuthenticationPrincipal user: User
     ): ResponseEntity<InteractionResponse> {
-        return ResponseEntity.ok(interactionService.likePost(user, postId))
+        return ResponseEntity.ok(interactionService.likePost(user, postId, request.requestId))
     }
 
     @DeleteMapping("/post/{postId}/like")
     fun unlikePost(
         @PathVariable postId: Long,
+        @RequestBody request: InteractionRequest,
         @AuthenticationPrincipal user: User
     ): ResponseEntity<InteractionResponse> {
-        return ResponseEntity.ok(interactionService.unlikePost(user, postId))
+        return ResponseEntity.ok(interactionService.unlikePost(user, postId, request.requestId))
     }
 
-    // ==================== BOOKMARK / UNBOOKMARK ====================
     @PostMapping("/post/{postId}/bookmark")
     fun bookmarkPost(
         @PathVariable postId: Long,
+        @RequestBody request: InteractionRequest,
         @AuthenticationPrincipal user: User
     ): ResponseEntity<InteractionResponse> {
-        return ResponseEntity.ok(interactionService.bookmarkPost(user, postId))
+        return ResponseEntity.ok(interactionService.bookmarkPost(user, postId, request.requestId))
     }
 
     @DeleteMapping("/post/{postId}/bookmark")
     fun unbookmarkPost(
         @PathVariable postId: Long,
+        @RequestBody request: InteractionRequest,
         @AuthenticationPrincipal user: User
     ): ResponseEntity<InteractionResponse> {
-        return ResponseEntity.ok(interactionService.unbookmarkPost(user, postId))
+        return ResponseEntity.ok(interactionService.unbookmarkPost(user, postId, request.requestId))
     }
 
-    // ==================== SHARE ====================
     @PostMapping("/post/{postId}/share")
     fun sharePost(
         @PathVariable postId: Long,
+        @RequestBody request: InteractionRequest,
         @AuthenticationPrincipal user: User
     ): ResponseEntity<InteractionResponse> {
-        return ResponseEntity.ok(interactionService.sharePost(user, postId))
+        return ResponseEntity.ok(interactionService.sharePost(user, postId, request.requestId))
     }
 
-    // ==================== GET USER INTERACTIONS ====================
     @GetMapping("/bookmarks")
     fun getBookmarkedPosts(
         @AuthenticationPrincipal user: User,
@@ -76,7 +78,6 @@ class InteractionController(
         return ResponseEntity.ok(interactionService.getLikedPosts(user, page, size))
     }
 
-    // ==================== CHECK INTERACTION STATUS ====================
     @GetMapping("/post/{postId}/liked")
     fun isPostLiked(
         @PathVariable postId: Long,

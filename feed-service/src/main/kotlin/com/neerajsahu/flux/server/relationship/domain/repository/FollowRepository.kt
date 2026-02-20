@@ -13,6 +13,8 @@ import java.util.Optional
 @Repository
 interface FollowRepository : JpaRepository<Follow, FollowId> {
 
+    fun existsByRequestId(requestId: String): Boolean
+
     @Query("""
         SELECT CASE WHEN COUNT(f) > 0 THEN true ELSE false END 
         FROM Follow f 
