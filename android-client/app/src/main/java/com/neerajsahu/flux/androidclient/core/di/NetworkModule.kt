@@ -1,5 +1,6 @@
 package com.neerajsahu.flux.androidclient.core.di
 
+import com.neerajsahu.flux.androidclient.BuildConfig
 import com.neerajsahu.flux.androidclient.core.network.AuthInterceptor
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.AuthApi
 import dagger.Module
@@ -40,7 +41,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         val builder = Retrofit.Builder()
-        builder.baseUrl("http://10.28.79.8:8080/") // Your computer's local IP address
+        builder.baseUrl(BuildConfig.BASE_URL)
         builder.client(okHttpClient)
         builder.addConverterFactory(GsonConverterFactory.create())
         return builder.build()
