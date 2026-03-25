@@ -88,7 +88,7 @@ class AuthViewModel @Inject constructor(
             
             val request = RegisterRequestDto(
                 username = _username.value,
-                fullName = _fullName.value,
+                    fullName = _fullName.value,
                 email = _email.value,
                 password = _password.value,
                 bio = bioVal,

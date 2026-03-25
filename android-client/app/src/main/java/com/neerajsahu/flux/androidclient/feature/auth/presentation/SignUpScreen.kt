@@ -1,29 +1,25 @@
 package com.neerajsahu.flux.androidclient.feature.auth.presentation
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.neerajsahu.flux.androidclient.R
+import com.neerajsahu.flux.androidclient.core.ui.theme.AndroidClientTheme
 
 @Composable
 fun SignUpScreen(
@@ -31,125 +27,127 @@ fun SignUpScreen(
     onSignUpSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
-    SignUpContent(
+    val state = viewModel.state.value
+    if (state.isSuccess) {
+        onSignUpSuccess()
+    }
+
+    SignUpScreenContent(
+        state = state,
         username = viewModel.username.value,
         fullName = viewModel.fullName.value,
         email = viewModel.email.value,
         password = viewModel.password.value,
         bio = viewModel.bio.value,
-        state = viewModel.state.value,
         onUsernameChange = viewModel::onUsernameChange,
         onFullNameChange = viewModel::onFullNameChange,
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
         onBioChange = viewModel::onBioChange,
-        onSignUp = viewModel::signup,
-        onSignUpSuccess = onSignUpSuccess,
+        onSignUpClick = viewModel::signup,
         onNavigateToLogin = onNavigateToLogin
     )
 }
 
 @Composable
-fun SignUpContent(
+fun SignUpScreenContent(
+    state: AuthState,
     username: String,
     fullName: String,
     email: String,
     password: String,
     bio: String,
-    state: AuthState,
     onUsernameChange: (String) -> Unit,
     onFullNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onBioChange: (String) -> Unit,
-    onSignUp: () -> Unit,
-    onSignUpSuccess: () -> Unit,
+    onSignUpClick: () -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
-    if (state.isSuccess) {
-        onSignUpSuccess()
-    }
+    val scrollState = rememberScrollState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Create Account",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
+    AuthScreenContainer(scrollState = scrollState) {
+        Spacer(modifier = Modifier.height(60.dp))
+
+        FluxLogo(iconSize = 100.dp)
+
         Spacer(modifier = Modifier.height(32.dp))
 
-        OutlinedTextField(
+        Text(
+            text = "Create Account",
+            style = TextStyle(
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+        )
+
+        Text(
+            text = "Join the Flux network",
+            style = TextStyle(
+                color = Color.Gray,
+                fontSize = 16.sp
+            )
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        FluxInputField(
+            label = "Username",
             value = username,
             onValueChange = onUsernameChange,
-            label = { Text("Username") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            placeholder = "johndoe",
+            iconResId = R.drawable.ic_person
         )
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
+        FluxInputField(
+            label = "Full Name",
             value = fullName,
             onValueChange = onFullNameChange,
-            label = { Text("Full Name") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            placeholder = "John Doe",
+            iconResId = R.drawable.ic_person
         )
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
+        FluxInputField(
+            label = "Email",
             value = email,
             onValueChange = onEmailChange,
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            placeholder = "john@example.com",
+            iconResId = R.drawable.ic_person
         )
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
+        FluxInputField(
+            label = "Password",
             value = password,
             onValueChange = onPasswordChange,
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true
+            placeholder = "••••••••",
+            iconResId = R.drawable.ic_lock,
+            isPassword = true
         )
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
+        FluxInputField(
+            label = "Bio (Optional)",
             value = bio,
             onValueChange = onBioChange,
-            label = { Text("Bio (Optional)") },
-            modifier = Modifier.fillMaxWidth(),
-            maxLines = 3
+            placeholder = "Tell us about yourself",
+            iconResId = R.drawable.ic_person
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            Button(
-                onClick = onSignUp,
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text("Sign Up", fontSize = 16.sp)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Already have an account? Login",
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.clickable { onNavigateToLogin() }
+        FluxButton(
+            text = "Create Account",
+            onClick = onSignUpClick,
+            isLoading = state.isLoading
         )
 
         val error = state.error
@@ -157,26 +155,46 @@ fun SignUpContent(
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = error, color = MaterialTheme.colorScheme.error)
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        val loginText = buildAnnotatedString {
+            withStyle(style = SpanStyle(color = Color.Gray)) {
+                append("Already have an account? ")
+            }
+            withStyle(style = SpanStyle(color = Color(0xFF38BDF8))) {
+                append("Login")
+            }
+        }
+
+        Text(
+            text = loginText,
+            modifier = Modifier
+                .padding(bottom = 48.dp)
+                .clickable { onNavigateToLogin() },
+            textAlign = TextAlign.Center
+        )
     }
 }
 
-@Composable
 @Preview(showBackground = true)
+@Composable
 fun SignUpScreenPreview() {
-    SignUpContent(
-        username = "johndoe",
-        email = "john@example.com",
-        fullName = "John Doe",
-        password = "password123",
-        bio = "Hello, I am John!",
-        state = AuthState(),
-        onUsernameChange = {},
-        onFullNameChange = {},
-        onEmailChange = {},
-        onPasswordChange = {},
-        onBioChange = {},
-        onSignUp = {},
-        onSignUpSuccess = {},
-        onNavigateToLogin = {}
-    )
+    AndroidClientTheme {
+        SignUpScreenContent(
+            state = AuthState(),
+            username = "johndoe",
+            fullName = "John Doe",
+            email = "john@example.com",
+            password = "password123",
+            bio = "I am a developer",
+            onUsernameChange = {},
+            onFullNameChange = {},
+            onEmailChange = {},
+            onPasswordChange = {},
+            onBioChange = {},
+            onSignUpClick = {},
+            onNavigateToLogin = {}
+        )
+    }
 }
