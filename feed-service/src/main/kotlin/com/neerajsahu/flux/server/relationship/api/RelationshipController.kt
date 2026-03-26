@@ -4,6 +4,7 @@ import com.neerajsahu.flux.server.auth.domain.model.User
 import com.neerajsahu.flux.server.auth.api.dto.UserResponse
 import com.neerajsahu.flux.server.relationship.api.dto.FollowActionResponse
 import com.neerajsahu.flux.server.relationship.api.dto.FollowRequest
+import com.neerajsahu.flux.server.relationship.api.dto.ProfileResponse
 import com.neerajsahu.flux.server.relationship.api.dto.ProfileStatsResponse
 import com.neerajsahu.flux.server.relationship.api.dto.RelationshipInfoResponse
 import com.neerajsahu.flux.server.relationship.service.FollowService
@@ -71,5 +72,27 @@ class RelationshipController(
     ): ResponseEntity<ProfileStatsResponse> {
         val stats = followService.getCurrentUserProfileStats(currentUser)
         return ResponseEntity.ok(stats)
+    }
+
+    @GetMapping("/{targetUserId}/followers")
+    fun getFollowersWithStatus(
+        @PathVariable targetUserId: Long,
+        @AuthenticationPrincipal currentUser: User,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<List<ProfileResponse>> {
+        val followers = followService.getFollowersWithStatus(targetUserId, currentUser.id!!, page, size)
+        return ResponseEntity.ok(followers)
+    }
+
+    @GetMapping("/{targetUserId}/following")
+    fun getFollowingWithStatus(
+        @PathVariable targetUserId: Long,
+        @AuthenticationPrincipal currentUser: User,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<List<ProfileResponse>> {
+        val following = followService.getFollowingWithStatus(targetUserId, currentUser.id!!, page, size)
+        return ResponseEntity.ok(following)
     }
 }
