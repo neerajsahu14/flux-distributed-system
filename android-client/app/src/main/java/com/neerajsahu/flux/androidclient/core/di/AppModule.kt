@@ -8,6 +8,7 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import com.neerajsahu.flux.androidclient.core.database.FluxDatabase
 import com.neerajsahu.flux.androidclient.feature.auth.data.local.UserDao
+import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,12 +35,20 @@ object AppModule {
             context,
             FluxDatabase::class.java,
             "flux_db"
-        ).build()
+        )
+        .fallbackToDestructiveMigration() // Added for development as version changed
+        .build()
     }
 
     @Provides
     @Singleton
     fun provideUserDao(database: FluxDatabase): UserDao {
         return database.userDao
+    }
+
+    @Provides
+    @Singleton
+    fun provideProfileStatsDao(database: FluxDatabase): ProfileStatsDao {
+        return database.profileStatsDao
     }
 }

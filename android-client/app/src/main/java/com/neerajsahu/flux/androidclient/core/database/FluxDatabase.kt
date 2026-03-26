@@ -4,12 +4,16 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.neerajsahu.flux.androidclient.feature.auth.data.local.UserDao
 import com.neerajsahu.flux.androidclient.feature.auth.data.local.UserEntity
+import com.neerajsahu.flux.androidclient.feature.relationship.data.local.PendingActionEntity
+import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsDao
+import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsEntity
 
 @Database(
-    entities = [UserEntity::class],
-    version = 1,
+    entities = [UserEntity::class, ProfileStatsEntity::class, PendingActionEntity::class],
+    version = 3,
     exportSchema = false
 )
 abstract class FluxDatabase : RoomDatabase() {
     abstract val userDao: UserDao
+    abstract val profileStatsDao: ProfileStatsDao
 }
