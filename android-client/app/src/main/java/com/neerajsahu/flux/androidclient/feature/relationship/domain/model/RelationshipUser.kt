@@ -1,13 +1,10 @@
 package com.neerajsahu.flux.androidclient.feature.relationship.domain.model
 
-data class ProfileStats(
-    val userId: Long,
+data class RelationshipUser(
+    val id: Long,
     val username: String,
     val fullName: String,
-    val bio: String?,
-    val postCount: Long,
-    val followersCount: Long,
-    val followingCount: Long,
+    val profilePicUrl: String?,
     val isFollowing: Boolean,
     val isFollowedBy: Boolean
 )

@@ -1,7 +1,6 @@
 package com.neerajsahu.flux.androidclient.feature.relationship.data.remote
 
 import com.neerajsahu.flux.androidclient.feature.relationship.data.remote.dto.*
-import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.UserResponse
 import retrofit2.http.*
 
 interface RelationshipApi {
@@ -12,19 +11,19 @@ interface RelationshipApi {
         @Body request: FollowRequest
     ): FollowActionResponse
 
-    @GET("api/v1/relationship/followers/{userId}")
+    @GET("api/v1/relationship/{targetUserId}/followers")
     suspend fun getFollowers(
-        @Path("userId") userId: Long,
+        @Path("targetUserId") targetUserId: Long,
         @Query("page") page: Int,
         @Query("size") size: Int
-    ): List<UserResponse>
+    ): List<ProfileResponse>
 
-    @GET("api/v1/relationship/following/{userId}")
+    @GET("api/v1/relationship/{targetUserId}/following")
     suspend fun getFollowing(
-        @Path("userId") userId: Long,
+        @Path("targetUserId") targetUserId: Long,
         @Query("page") page: Int,
         @Query("size") size: Int
-    ): List<UserResponse>
+    ): List<ProfileResponse>
 
     @GET("api/v1/relationship/info/{targetUserId}")
     suspend fun getRelationshipInfo(

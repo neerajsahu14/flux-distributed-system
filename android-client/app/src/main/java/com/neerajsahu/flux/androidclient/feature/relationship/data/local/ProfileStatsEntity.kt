@@ -13,6 +13,6 @@ data class ProfileStatsEntity(
     val followersCount: Long,
     val followingCount: Long,
     val isFollowing: Boolean,
-    val lastUpdated: Long = System.currentTimeMillis(),
-    val lastAccessed: Long = System.currentTimeMillis()
+    val isFollowedBy: Boolean,
+    val lastUpdated: Long = System.currentTimeMillis()
 )
