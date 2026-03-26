@@ -2,10 +2,32 @@ package com.neerajsahu.flux.androidclient.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Brand Accents - Vibrant Cyan
+val FluxPrimaryDark = Color(0xFF00D4FF)
+val FluxOnPrimaryDark = Color(0xFF000000)
+val FluxPrimaryContainerDark = Color(0xFF004B60)
+val FluxOnPrimaryContainerDark = Color(0xFFB3F2FF)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Brand Accents - Neon Violet
+val FluxSecondaryDark = Color(0xFF9D4EDD)
+val FluxOnSecondaryDark = Color(0xFFFFFFFF)
+val FluxSecondaryContainerDark = Color(0xFF4A0072)
+val FluxOnSecondaryContainerDark = Color(0xFFE0B3FF)
+
+// Backgrounds & Surfaces (Deep Sapphire/Charcoal)
+val FluxBackgroundDark = Color(0xFF09101C)
+val FluxOnBackgroundDark = Color(0xFFE2E8F0)
+
+val FluxSurfaceDark = Color(0xFF121A2F)
+val FluxOnSurfaceDark = Color(0xFFE2E8F0)
+
+val FluxSurfaceVariantDark = Color(0xFF1E293B)
+val FluxOnSurfaceVariantDark = Color(0xFF94A3B8)
+
+// Error Handling
+val FluxErrorDark = Color(0xFFFF897D)
+val FluxOnErrorDark = Color(0xFF000000)
+
+// Gradients (For custom modifier usage later)
+val GradientStart = Color(0xFF3B82F6)
+val GradientEnd = Color(0xFF8B5CF6)

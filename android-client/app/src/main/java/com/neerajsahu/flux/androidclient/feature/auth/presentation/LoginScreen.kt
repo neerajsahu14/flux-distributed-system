@@ -1,28 +1,24 @@
 package com.neerajsahu.flux.androidclient.feature.auth.presentation
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-
+import com.neerajsahu.flux.androidclient.R
 
 @Composable
 fun LoginScreen(
@@ -30,84 +26,74 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToSignUp: () -> Unit
 ) {
-    LoginContent(
-        email = viewModel.email.value,
-        password = viewModel.password.value,
-        state = viewModel.state.value,
-        onEmailChange = viewModel::onEmailChange,
-        onPasswordChange = viewModel::onPasswordChange,
-        onLogin = viewModel::login,
-        onLoginSuccess = onLoginSuccess,
-        onNavigateToSignUp = onNavigateToSignUp
-    )
-}
-
-@Composable
-fun LoginContent(
-    email: String,
-    password: String,
-    state: AuthState,
-    onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onLogin: () -> Unit,
-    onLoginSuccess: () -> Unit,
-    onNavigateToSignUp: () -> Unit
-) {
+    val state = viewModel.state.value
     if (state.isSuccess) {
         onLoginSuccess()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
+    val scrollState = rememberScrollState()
+
+    AuthScreenContainer(scrollState = scrollState) {
+        Spacer(modifier = Modifier.height(60.dp))
+
+        FluxLogo(iconSize = 120.dp)
+
+        Spacer(modifier = Modifier.height(40.dp))
+
         Text(
             text = "Welcome Back",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            style = TextStyle(
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
         )
-        Spacer(modifier = Modifier.height(32.dp))
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = onEmailChange,
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+        Text(
+            text = "Log in to continue",
+            style = TextStyle(
+                color = Color.Gray,
+                fontSize = 16.sp
+            )
         )
-        Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = onPasswordChange,
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true
+        Spacer(modifier = Modifier.height(48.dp))
+
+        FluxInputField(
+            label = "Email",
+            value = viewModel.email.value,
+            onValueChange = viewModel::onEmailChange,
+            placeholder = "Enter your email",
+            iconResId = R.drawable.ic_person
         )
+
         Spacer(modifier = Modifier.height(24.dp))
 
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            Button(
-                onClick = onLogin,
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text("Login", fontSize = 16.sp)
+        FluxInputField(
+            label = "Password",
+            value = viewModel.password.value,
+            onValueChange = viewModel::onPasswordChange,
+            placeholder = "••••••••",
+            iconResId = R.drawable.ic_lock,
+            isPassword = true,
+            trailingContent = {
+                Text(
+                    text = "Forgot Password?",
+                    style = TextStyle(
+                        color = Color(0xFF38BDF8),
+                        fontSize = 14.sp
+                    ),
+                    modifier = Modifier.clickable { /* Handle Forgot Password */ }
+                )
             }
-        }
+        )
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Don't have an account? Sign Up",
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.clickable { onNavigateToSignUp() }
+        Spacer(modifier = Modifier.height(48.dp))
+
+        FluxButton(
+            text = "Access Your Feed",
+            onClick = viewModel::login,
+            isLoading = state.isLoading
         )
 
         val error = state.error
@@ -115,20 +101,24 @@ fun LoginContent(
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = error, color = MaterialTheme.colorScheme.error)
         }
-    }
-}
 
-@Composable
-@Preview(showBackground = true)
-fun LoginScreenPreview() {
-    LoginContent(
-        email = "test@example.com",
-        password = "password",
-        state = AuthState(),
-        onEmailChange = {},
-        onPasswordChange = {},
-        onLogin = {},
-        onLoginSuccess = {},
-        onNavigateToSignUp = {}
-    )
+        Spacer(modifier = Modifier.weight(1f))
+
+        val signUpText = buildAnnotatedString {
+            withStyle(style = SpanStyle(color = Color.Gray)) {
+                append("Don't have an account? ")
+            }
+            withStyle(style = SpanStyle(color = Color(0xFF38BDF8))) {
+                append("Sign Up")
+            }
+        }
+
+        Text(
+            text = signUpText,
+            modifier = Modifier
+                .padding(bottom = 48.dp)
+                .clickable { onNavigateToSignUp() },
+            textAlign = TextAlign.Center
+        )
+    }
 }
