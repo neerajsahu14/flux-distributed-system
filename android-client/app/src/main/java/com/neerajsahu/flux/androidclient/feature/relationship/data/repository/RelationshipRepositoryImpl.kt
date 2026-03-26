@@ -4,16 +4,17 @@ import android.content.Context
 import androidx.work.*
 import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
 import com.neerajsahu.flux.androidclient.core.utils.AppResult
-import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.UserResponse
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.PendingActionEntity
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsDao
 import com.neerajsahu.flux.androidclient.feature.relationship.data.remote.RelationshipApi
 import com.neerajsahu.flux.androidclient.feature.relationship.data.remote.dto.*
 import com.neerajsahu.flux.androidclient.feature.relationship.data.worker.FollowWorker
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.ProfileStats
+import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.RelationshipUser
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.repository.RelationshipRepository
 import com.neerajsahu.flux.androidclient.feature.relationship.mapper.toProfileStats
 import com.neerajsahu.flux.androidclient.feature.relationship.mapper.toProfileStatsEntity
+import com.neerajsahu.flux.androidclient.feature.relationship.mapper.toRelationshipUser
 import kotlinx.coroutines.flow.*
 import retrofit2.HttpException
 import java.io.IOException
@@ -67,19 +68,19 @@ class RelationshipRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getFollowers(userId: Long, page: Int, size: Int): AppResult<List<UserResponse>> {
+    override suspend fun getFollowers(userId: Long, page: Int, size: Int): AppResult<List<RelationshipUser>> {
         return try {
             val response = api.getFollowers(userId, page, size)
-            AppResult.Success(response)
+            AppResult.Success(response.map { it.toRelationshipUser() })
         } catch (e: Exception) {
             AppResult.Error(e.message ?: "An unknown error occurred")
         }
     }
 
-    override suspend fun getFollowing(userId: Long, page: Int, size: Int): AppResult<List<UserResponse>> {
+    override suspend fun getFollowing(userId: Long, page: Int, size: Int): AppResult<List<RelationshipUser>> {
         return try {
             val response = api.getFollowing(userId, page, size)
-            AppResult.Success(response)
+            AppResult.Success(response.map { it.toRelationshipUser() })
         } catch (e: Exception) {
             AppResult.Error(e.message ?: "An unknown error occurred")
         }

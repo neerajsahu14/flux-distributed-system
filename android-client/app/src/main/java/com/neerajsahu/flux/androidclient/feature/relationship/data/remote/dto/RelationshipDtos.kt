@@ -2,19 +2,22 @@ package com.neerajsahu.flux.androidclient.feature.relationship.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
+data class ProfileResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("username") val username: String,
+    @SerializedName("fullName") val fullName: String,
+    @SerializedName("profilePicUrl") val profilePicUrl: String?,
+    @SerializedName("bio") val bio: String?,
+    @SerializedName("isFollowing") val isFollowing: Boolean,
+    @SerializedName("isFollowedBy") val isFollowedBy: Boolean
+)
+
 data class ProfileStatsResponse(
-    @SerializedName("profile") val profile: Profile,
+    @SerializedName("profile") val profile: ProfileResponse,
     @SerializedName("postCount") val postCount: Long,
     @SerializedName("followersCount") val followersCount: Long,
     @SerializedName("followingCount") val followingCount: Long,
     @SerializedName("isFollowing") val isFollowing: Boolean
-)
-
-data class Profile(
-    @SerializedName("id") val id: Long,
-    @SerializedName("username") val username: String,
-    @SerializedName("fullName") val fullName: String,
-    @SerializedName("bio") val bio: String?
 )
 
 data class FollowActionResponse(
