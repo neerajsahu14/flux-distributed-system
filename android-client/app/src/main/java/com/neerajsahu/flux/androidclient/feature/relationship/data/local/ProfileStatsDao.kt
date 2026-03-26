@@ -9,7 +9,7 @@ interface ProfileStatsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProfileStats(stats: ProfileStatsEntity)
 
-    @Query("SELECT * FROM profile_stats WHERE userId = :userId")
+    @Query("SELECT * FROM profile_stats WHERE userId = :userId LIMIT 1")
     fun getProfileStatsById(userId: Long): Flow<ProfileStatsEntity?>
 
     @Query("UPDATE profile_stats SET lastAccessed = :timestamp WHERE userId = :userId")
