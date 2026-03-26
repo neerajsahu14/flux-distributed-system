@@ -19,7 +19,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -32,6 +31,7 @@ import com.neerajsahu.flux.androidclient.core.navigation.Route
 import com.neerajsahu.flux.androidclient.core.ui.theme.AndroidClientTheme
 import com.neerajsahu.flux.androidclient.feature.auth.presentation.LoginScreen
 import com.neerajsahu.flux.androidclient.feature.auth.presentation.SignUpScreen
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ProfileScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -44,9 +44,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             AndroidClientTheme {
                 val isUserLoggedIn by viewModel.isUserLoggedIn.collectAsState()
+                val currentUserProfile by viewModel.currentUserProfile.collectAsState()
                 
                 if (isUserLoggedIn == null) {
-                    // Show a splash or loading screen while checking auth status
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
@@ -116,12 +116,16 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                     Route.Profile -> NavEntry(Route.Profile) {
-                                        Box(modifier = Modifier.fillMaxSize()) {
-                                            Text("Profile Screen")
-                                        }
+                                        ProfileScreen(
+                                            userId = currentUserProfile?.profile?.id ?: 0L,
+                                            onBackClick = {
+                                                if (backStack.size > 1) {
+                                                    backStack.removeAt(backStack.size - 1)
+                                                }
+                                            }
+                                        )
                                     }
                                     Route.Main -> NavEntry(Route.Main) {
-                                        // Handle Main by ensuring we have a default tab
                                         Box(modifier = Modifier.fillMaxSize()) {
                                             Text("Main")
                                         }
