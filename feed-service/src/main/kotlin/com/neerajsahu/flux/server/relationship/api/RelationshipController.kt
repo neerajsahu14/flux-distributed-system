@@ -57,11 +57,19 @@ class RelationshipController(
     }
     // Get Complete Profile Stats
     @GetMapping("/stats/{targetUserId}")
-    fun getProfileStats(
+    fun getTargetProfileStats(
         @PathVariable targetUserId: Long,
         @AuthenticationPrincipal currentUser: User
     ): ResponseEntity<ProfileStatsResponse> {
         val stats = followService.getProfileStats(targetUserId, currentUser.id!!)
+        return ResponseEntity.ok(stats)
+    }
+
+    @GetMapping("/stats/me")
+    fun getCurrentUserProfileStats(
+        @AuthenticationPrincipal currentUser: User
+    ): ResponseEntity<ProfileStatsResponse> {
+        val stats = followService.getCurrentUserProfileStats(currentUser)
         return ResponseEntity.ok(stats)
     }
 }
