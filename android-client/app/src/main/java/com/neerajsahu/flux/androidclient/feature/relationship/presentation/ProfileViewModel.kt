@@ -29,6 +29,11 @@ class ProfileViewModel @Inject constructor(
     val state: State<ProfileState> = _state
 
     fun getProfile(userId: Long) {
+        _state.value = _state.value.copy(
+            isLoading = _state.value.profile == null,
+            error = null
+        )
+
         repository.getProfileStats(userId).onEach { result ->
             when (result) {
                 is AppResult.Success -> {

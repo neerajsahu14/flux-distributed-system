@@ -95,18 +95,25 @@ class RelationshipRepositoryImpl @Inject constructor(
     }
 
     override fun getProfileStats(userId: Long): Flow<AppResult<ProfileStats>> = flow {
-        val cached = profileStatsDao.getProfileStatsById(userId).first()
+        val tokenUserId = tokenManager.getUserId().first() ?: 0L
+        val resolvedUserId = if (userId == 0L) tokenUserId else userId
+
+        if (resolvedUserId <= 0L) {
+            emit(AppResult.Error("Invalid user id"))
+            return@flow
+        }
+
+        val cached = profileStatsDao.getProfileStatsById(resolvedUserId).first()
         if (cached != null) {
-            profileStatsDao.updateLastAccessed(userId)
+            profileStatsDao.updateLastAccessed(resolvedUserId)
             emit(AppResult.Success(cached.toProfileStats()))
         }
 
         try {
-            val remoteStats = api.getTargetProfileStats(userId)
+            val remoteStats = api.getTargetProfileStats(resolvedUserId)
             profileStatsDao.insertProfileStats(remoteStats.toProfileStatsEntity())
-            
-            // Cleanup old profiles
-            val currentUserId = tokenManager.getUserId().first() ?: -1L
+
+            val currentUserId = if (tokenUserId > 0L) tokenUserId else resolvedUserId
             profileStatsDao.pruneOldProfiles(currentUserId, CACHE_LIMIT)
 
             emit(AppResult.Success(remoteStats.toProfileStats()))
