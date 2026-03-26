@@ -4,6 +4,7 @@ import com.neerajsahu.flux.server.auth.api.dto.UserResponse
 import com.neerajsahu.flux.server.auth.domain.model.User
 import com.neerajsahu.flux.server.auth.domain.repository.UserRepository
 import com.neerajsahu.flux.server.feed.domain.repository.PostRepository
+import com.neerajsahu.flux.server.relationship.api.dto.Profile
 import com.neerajsahu.flux.server.relationship.api.dto.ProfileStatsResponse
 import com.neerajsahu.flux.server.relationship.api.dto.RelationshipInfoResponse
 import com.neerajsahu.flux.server.relationship.domain.model.Follow
@@ -107,14 +108,13 @@ class FollowService(
     }
 
     fun getProfileStats(targetUserId: Long, currentUserId: Long): ProfileStatsResponse {
+        val targetUser = userRepository.findById(targetUserId)
+            .orElseThrow { RuntimeException("User not found") }
 
-        // 1. Parallel Queries (DB optimizations baad me, abhi simple rakho)
         val posts = postRepository.countByAuthorId(targetUserId)
         val followers = followRepository.countFollowers(targetUserId)
         val following = followRepository.countFollowing(targetUserId)
 
-        // 2. Check Relationship (Main isse follow karta hu ya nahi?)
-        // Agar main khud apni profile dekh raha hu, to false return hoga (UI handle karega)
         val isFollowing = if (targetUserId == currentUserId) {
             false
         } else {
@@ -122,10 +122,20 @@ class FollowService(
         }
 
         return ProfileStatsResponse(
+            profile = Profile(
+                id = targetUser.id!!,
+                username = targetUser._username,
+                fullName = targetUser._username,
+                bio = targetUser.bio ?: ""
+            ),
             postCount = posts,
             followersCount = followers,
             followingCount = following,
             isFollowing = isFollowing
         )
+    }
+
+    fun getCurrentUserProfileStats(currentUser: User): ProfileStatsResponse {
+        return getProfileStats(currentUser.id!!, currentUser.id)
     }
 }
