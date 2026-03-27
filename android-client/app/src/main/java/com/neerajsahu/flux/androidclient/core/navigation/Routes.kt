@@ -20,5 +20,8 @@ sealed interface Route {
     data object Profile : Route
 
     @Serializable
+    data class UserProfile(val userId: Long) : Route
+
+    @Serializable
     data class Connections(val userId: Long, val initialTab: Int) : Route
 }

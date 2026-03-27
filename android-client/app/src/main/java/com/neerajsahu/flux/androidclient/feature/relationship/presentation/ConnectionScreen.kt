@@ -2,7 +2,6 @@ package com.neerajsahu.flux.androidclient.feature.relationship.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,13 +22,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.foundation.clickable
 
 @Composable
 fun ConnectionScreen(
     userId: Long,
     initialTab: Int = 0, // 0 for Followers, 1 for Following
     viewModel: ProfileViewModel = hiltViewModel(),
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    onProfileClick: (Long) -> Unit = {}
 ) {
     var selectedTab by remember { mutableIntStateOf(initialTab) }
     var searchQuery by remember { mutableStateOf("") }
@@ -127,14 +128,11 @@ fun ConnectionScreen(
                             else -> "Follow"
                         }
                         
-                        // We need to map RelationshipUser to the ProfileCard expected model or update ProfileCard
-                        // ProfileCard expects a 'User' model from auth domain and several callbacks.
-                        // I will pass properties manually if I modify ProfileCard or use a wrapper.
-                        
                         RelationshipProfileCard(
                             user = user,
                             buttonText = buttonText,
                             onButtonClick = { viewModel.toggleFollow(user.id) },
+                            onProfileClick = { onProfileClick(user.id) }
                         )
                         
                         HorizontalDivider(
