@@ -22,23 +22,34 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.neerajsahu.flux.androidclient.feature.auth.domain.model.User
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
-fun ConnectionScreen() {
-    var selectedTab by remember { mutableIntStateOf(0) }
+fun ConnectionScreen(
+    userId: Long,
+    initialTab: Int = 0, // 0 for Followers, 1 for Following
+    viewModel: ProfileViewModel = hiltViewModel(),
+    onBackClick: () -> Unit = {}
+) {
+    var selectedTab by remember { mutableIntStateOf(initialTab) }
     var searchQuery by remember { mutableStateOf("") }
+    val state by viewModel.state
 
-    val dummyUsers = remember {
-        listOf(
-            User(1, "emmajohnson", "emma@example.com", null, "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma"),
-            User(2, "jasonmiller", "jason@example.com", null, "https://api.dicebear.com/7.x/avataaars/svg?seed=Jason"),
-            User(3, "sarahlee", "sarah@example.com", null, "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"),
-            User(4, "michaelc", "michael@example.com", null, "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael"),
-            User(5, "alexabrooks", "alexa@example.com", null, "https://api.dicebear.com/7.x/avataaars/svg?seed=Alexa"),
-            User(6, "danielwong", "daniel@example.com", null, "https://api.dicebear.com/7.x/avataaars/svg?seed=Daniel"),
-            User(7, "laurasmith", "laura@example.com", null, "https://api.dicebear.com/7.x/avataaars/svg?seed=Laura")
-        )
+    LaunchedEffect(userId, selectedTab) {
+        if (selectedTab == 0) {
+            viewModel.getFollowers(userId)
+        } else {
+            viewModel.getFollowing(userId)
+        }
+    }
+
+    val users = if (selectedTab == 0) state.followers else state.following
+    val filteredUsers = remember(users, searchQuery) {
+        if (searchQuery.isEmpty()) users
+        else users.filter { 
+            it.username.contains(searchQuery, ignoreCase = true) || 
+            it.fullName.contains(searchQuery, ignoreCase = true) 
+        }
     }
 
     Box(
@@ -100,28 +111,38 @@ fun ConnectionScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Connection List
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                items(dummyUsers, key = { it.id }) { user ->
-                    val buttonText = when (user.id.toInt()) {
-                        2, 5, 7 -> "Message"
-                        4 -> "Following"
-                        else -> "Follow"
+            if (state.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Color(0xFF00D4FF))
+                }
+            } else {
+                // Connection List
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    items(filteredUsers, key = { it.id }) { user ->
+                        val buttonText = when {
+                            user.isFollowing -> "Following"
+                            else -> "Follow"
+                        }
+                        
+                        // We need to map RelationshipUser to the ProfileCard expected model or update ProfileCard
+                        // ProfileCard expects a 'User' model from auth domain and several callbacks.
+                        // I will pass properties manually if I modify ProfileCard or use a wrapper.
+                        
+                        RelationshipProfileCard(
+                            user = user,
+                            buttonText = buttonText,
+                            onButtonClick = { viewModel.toggleFollow(user.id) },
+                        )
+                        
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            thickness = 0.5.dp,
+                            color = Color.White.copy(alpha = 0.1f)
+                        )
                     }
-                    ProfileCard(
-                        user = user,
-                        buttonText = buttonText,
-                        onButtonClick = { /* TODO */ },
-                        onRemoveClick = { /* TODO */ }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        thickness = 0.5.dp,
-                        color = Color.White.copy(alpha = 0.1f)
-                    )
                 }
             }
         }

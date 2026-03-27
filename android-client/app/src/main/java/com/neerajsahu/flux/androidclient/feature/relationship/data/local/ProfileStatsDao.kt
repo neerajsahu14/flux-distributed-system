@@ -12,7 +12,7 @@ interface ProfileStatsDao {
     @Query("SELECT * FROM profile_stats WHERE userId = :userId LIMIT 1")
     fun getProfileStatsById(userId: Long): Flow<ProfileStatsEntity?>
 
-    @Query("UPDATE profile_stats SET lastAccessed = :timestamp WHERE userId = :userId")
+    @Query("UPDATE profile_stats SET lastUpdated = :timestamp WHERE userId = :userId")
     suspend fun updateLastAccessed(userId: Long, timestamp: Long = System.currentTimeMillis())
 
     @Query("DELETE FROM profile_stats WHERE userId = :userId")
@@ -28,7 +28,7 @@ interface ProfileStatsDao {
         AND userId NOT IN (
             SELECT userId FROM profile_stats 
             WHERE userId != :currentUserId 
-            ORDER BY lastAccessed DESC 
+            ORDER BY lastUpdated DESC 
             LIMIT :limit
         )
     """)
