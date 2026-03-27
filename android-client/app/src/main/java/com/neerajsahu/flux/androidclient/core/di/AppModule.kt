@@ -8,6 +8,7 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import com.neerajsahu.flux.androidclient.core.database.FluxDatabase
 import com.neerajsahu.flux.androidclient.feature.auth.data.local.UserDao
+import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostDao
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsDao
 import dagger.Module
 import dagger.Provides
@@ -50,5 +51,11 @@ object AppModule {
     @Singleton
     fun provideProfileStatsDao(database: FluxDatabase): ProfileStatsDao {
         return database.profileStatsDao
+    }
+
+    @Provides
+    @Singleton
+    fun providePostDao(database: FluxDatabase): PostDao {
+        return database.postDao
     }
 }
