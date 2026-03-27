@@ -133,6 +133,7 @@ class FollowService(
             profile = ProfileResponse(
                 id = targetUser.id!!,
                 username = targetUser._username,
+                profileImageUrl = targetUser.profilePicUrl,
                 fullName = targetUser._username,
                 bio = targetUser.bio,
                 isFollowing = isFollowing,
@@ -169,6 +170,7 @@ class FollowService(
                 id = user.id!!,
                 username = user._username,
                 fullName = user._username,
+                profileImageUrl = user.profilePicUrl,
                 bio = user.bio,
                 isFollowing = followingByCurrentUser.contains(user.id),
                 isFollowedBy = followedByCurrentUser.contains(user.id)
@@ -196,6 +198,7 @@ class FollowService(
                 id = user.id!!,
                 username = user._username,
                 fullName = user._username,
+                profileImageUrl = user.profilePicUrl,
                 bio = user.bio,
                 isFollowing = followingByCurrentUser.contains(user.id),
                 isFollowedBy = followedByCurrentUser.contains(user.id)
