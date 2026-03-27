@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,23 +22,25 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import com.neerajsahu.flux.androidclient.feature.auth.domain.model.User
+import coil.compose.SubcomposeAsyncImage
+import com.neerajsahu.flux.androidclient.R
+import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.RelationshipUser
 
 @Composable
-fun ProfileCard(
-    user: User,
+fun RelationshipProfileCard(
+    user: RelationshipUser,
     buttonText: String,
     onButtonClick: () -> Unit,
-    onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .clickable { onButtonClick() } // Action on card click as requested
             .padding(vertical = 12.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -46,11 +49,7 @@ fun ProfileCard(
             modifier = Modifier
                 .size(64.dp)
                 .drawBehind {
-                    val glowColor = when (buttonText) {
-                        "Message" -> if (user.id == 5L) Color(0xFF9D4EDD) else Color(0xFF475569)
-                        "Follow" -> Color(0xFF00D4FF)
-                        else -> Color(0xFF475569)
-                    }
+                    val glowColor = if (buttonText == "Follow") Color(0xFF00D4FF) else Color(0xFF475569)
                     val paint = android.graphics.Paint().apply {
                         isAntiAlias = true
                         color = android.graphics.Color.TRANSPARENT
@@ -67,18 +66,35 @@ fun ProfileCard(
                 .border(
                     width = 2.dp,
                     brush = Brush.sweepGradient(
-                        colors = listOf(Color(0xFF00D4FF), Color(0xFF9D4EDD), Color(0xFF00D4FF))
+                        colors = listOf(Color(0xFF00D4FF), Color(0xFFE040FB), Color(0xFF00D4FF))
                     ),
                     shape = CircleShape
                 )
                 .padding(4.dp)
                 .clip(CircleShape)
         ) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = user.profilePicUrl,
                 contentDescription = user.username,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                loading = {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color(0xFF00D4FF),
+                            strokeWidth = 2.dp
+                        )
+                    }
+                },
+                error = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_person),
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
             )
         }
 
@@ -87,39 +103,36 @@ fun ProfileCard(
         // User Info (Name and Handle)
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = user.username.replaceFirstChar { it.uppercase() },
+                text = user.fullName.ifEmpty { user.username.replaceFirstChar { it.uppercase() } },
                 color = Color.White,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = "@${user.username.lowercase()}",
-                color = Color(0xFF94A3B8), // Muted blue-gray for handle
+                color = Color(0xFF94A3B8),
                 fontSize = 13.sp
             )
         }
 
-        // Action Button (Follow, Following, Message)
+        // Action Button
         NeonButton(
             text = buttonText,
             onClick = onButtonClick,
-            // Alexa (id 5) has purple button, Jason (id 2) has dark button for "Message" as per image
-            isPurple = buttonText == "Message" && user.id == 5L,
-            isDark = buttonText == "Following" || (buttonText == "Message" && user.id != 5L)
+            isDark = buttonText == "Following"
         )
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Remove Icon in circle
+        // Remove Icon (Disabled as API is pending)
         Icon(
             imageVector = Icons.Default.Close,
             contentDescription = "Remove",
-            tint = Color.White.copy(alpha = 0.6f),
+            tint = Color.White.copy(alpha = 0.2f), // Faded out since API is missing
             modifier = Modifier
                 .size(32.dp)
-                .background(Color(0xFF1E293B).copy(alpha = 0.4f), CircleShape)
-                .border(1.dp, Color.White.copy(alpha = 0.1f), CircleShape)
-                .clickable { onRemoveClick() }
+                .background(Color(0xFF1E293B).copy(alpha = 0.2f), CircleShape)
+                .border(1.dp, Color.White.copy(alpha = 0.05f), CircleShape)
                 .padding(8.dp)
         )
     }
@@ -129,14 +142,9 @@ fun ProfileCard(
 fun NeonButton(
     text: String,
     onClick: () -> Unit,
-    isPurple: Boolean = false,
     isDark: Boolean = false
 ) {
-    val buttonColor = when {
-        isPurple -> Color(0xFF9D4EDD)
-        isDark -> Color(0xFF1E293B)
-        else -> Color(0xFF00D4FF) // Primary cyan glow
-    }
+    val buttonColor = if (isDark) Color(0xFF1E293B) else Color(0xFF00D4FF)
 
     Box(
         modifier = Modifier
@@ -178,22 +186,5 @@ fun NeonButton(
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold
         )
-        
-        // Lens flare / gloss effect
-        if (!isDark) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                Color.White.copy(alpha = 0.25f),
-                                Color.Transparent,
-                                Color.White.copy(alpha = 0.15f)
-                            )
-                        )
-                    )
-            )
-        }
     }
 }

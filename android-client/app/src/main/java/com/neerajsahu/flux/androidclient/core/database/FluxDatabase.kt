@@ -10,7 +10,7 @@ import com.neerajsahu.flux.androidclient.feature.relationship.data.local.Profile
 
 @Database(
     entities = [UserEntity::class, ProfileStatsEntity::class, PendingActionEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class FluxDatabase : RoomDatabase() {

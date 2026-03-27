@@ -31,6 +31,7 @@ import com.neerajsahu.flux.androidclient.core.navigation.Route
 import com.neerajsahu.flux.androidclient.core.ui.theme.AndroidClientTheme
 import com.neerajsahu.flux.androidclient.feature.auth.presentation.LoginScreen
 import com.neerajsahu.flux.androidclient.feature.auth.presentation.SignUpScreen
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ConnectionScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ProfileScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -118,6 +119,20 @@ class MainActivity : ComponentActivity() {
                                     Route.Profile -> NavEntry(Route.Profile) {
                                         ProfileScreen(
                                             userId = currentUserProfile?.profile?.id ?: 0L,
+                                            onBackClick = {
+                                                if (backStack.size > 1) {
+                                                    backStack.removeAt(backStack.size - 1)
+                                                }
+                                            },
+                                            onNavigateToConnections = { userId, initialTab ->
+                                                backStack.add(Route.Connections(userId, initialTab))
+                                            }
+                                        )
+                                    }
+                                    is Route.Connections -> NavEntry(route) {
+                                        ConnectionScreen(
+                                            userId = route.userId,
+                                            initialTab = route.initialTab,
                                             onBackClick = {
                                                 if (backStack.size > 1) {
                                                     backStack.removeAt(backStack.size - 1)

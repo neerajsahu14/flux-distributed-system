@@ -8,6 +8,7 @@ data class ProfileStatsEntity(
     @PrimaryKey val userId: Long,
     val username: String,
     val fullName: String,
+    val profilePicUrl: String?,
     val bio: String?,
     val postCount: Long,
     val followersCount: Long,
