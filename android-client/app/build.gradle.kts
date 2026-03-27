@@ -101,6 +101,7 @@ dependencies {
 
     // Coil
     implementation(libs.coil.compose)
+    implementation(libs.coil.svg)
 
     // ExoPlayer
     implementation(libs.media3.exoplayer)

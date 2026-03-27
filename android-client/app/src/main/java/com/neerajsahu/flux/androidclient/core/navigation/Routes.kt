@@ -17,6 +17,15 @@ sealed interface Route {
     data object NewsFeed : Route
 
     @Serializable
+    data object Explore : Route
+
+    @Serializable
+    data object CreatePost : Route
+
+    @Serializable
+    data object Notifications : Route
+
+    @Serializable
     data object Profile : Route
 
     @Serializable
@@ -24,4 +33,7 @@ sealed interface Route {
 
     @Serializable
     data class Connections(val userId: Long, val initialTab: Int) : Route
+
+    @Serializable
+    data class PostDetail(val postId: Long) : Route
 }
