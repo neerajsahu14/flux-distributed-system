@@ -35,12 +35,13 @@ fun RelationshipProfileCard(
     user: RelationshipUser,
     buttonText: String,
     onButtonClick: () -> Unit,
+    onProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onButtonClick() } // Action on card click as requested
+            .clickable { onProfileClick() }
             .padding(vertical = 12.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

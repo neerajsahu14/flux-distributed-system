@@ -31,6 +31,7 @@ import com.neerajsahu.flux.androidclient.core.navigation.Route
 import com.neerajsahu.flux.androidclient.core.ui.theme.AndroidClientTheme
 import com.neerajsahu.flux.androidclient.feature.auth.presentation.LoginScreen
 import com.neerajsahu.flux.androidclient.feature.auth.presentation.SignUpScreen
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.FeedScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ConnectionScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ProfileScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,6 +47,7 @@ class MainActivity : ComponentActivity() {
             AndroidClientTheme {
                 val isUserLoggedIn by viewModel.isUserLoggedIn.collectAsState()
                 val currentUserProfile by viewModel.currentUserProfile.collectAsState()
+                val currentUserId = currentUserProfile?.profile?.id ?: 0L
                 
                 if (isUserLoggedIn == null) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -61,17 +63,25 @@ class MainActivity : ComponentActivity() {
                     }
 
                     val currentRoute = backStack.lastOrNull()
-                    val showBottomBar = currentRoute != null && (currentRoute is Route.Main || currentRoute is Route.NewsFeed || currentRoute is Route.Profile)
+                    val showBottomBar = currentRoute != null && (
+                        currentRoute is Route.NewsFeed || 
+                        currentRoute is Route.Profile || 
+                        currentRoute is Route.UserProfile || 
+                        currentRoute is Route.Connections
+                    )
+
+                    // Determine which tab is "active" based on the first element in the stack (NewsFeed or Profile)
+                    val activeRoot = backStack.firstOrNull { it is Route.NewsFeed || it is Route.Profile } ?: Route.NewsFeed
 
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
                         bottomBar = {
                             if (showBottomBar && currentRoute != null) {
                                 BottomNavigationBar(
-                                    currentRoute = currentRoute,
+                                    activeRoot = activeRoot,
                                     onNavigate = { route ->
-                                        if (backStack.isNotEmpty() && backStack.last() != route) {
-                                            backStack.removeAt(backStack.size - 1)
+                                        if (activeRoot != route) {
+                                            backStack.clear()
                                             backStack.add(route)
                                         }
                                     }
@@ -112,13 +122,33 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                     Route.NewsFeed -> NavEntry(Route.NewsFeed) {
-                                        Box(modifier = Modifier.fillMaxSize()) {
-                                            Text("News Feed Screen")
-                                        }
+                                        FeedScreen(
+                                            onProfileClick = { clickedUserId ->
+                                                if (clickedUserId == currentUserId) {
+                                                    backStack.clear()
+                                                    backStack.add(Route.Profile)
+                                                } else {
+                                                    backStack.add(Route.UserProfile(clickedUserId))
+                                                }
+                                            }
+                                        )
                                     }
                                     Route.Profile -> NavEntry(Route.Profile) {
                                         ProfileScreen(
-                                            userId = currentUserProfile?.profile?.id ?: 0L,
+                                            userId = currentUserId,
+                                            onBackClick = {
+                                                if (backStack.size > 1) {
+                                                    backStack.removeAt(backStack.size - 1)
+                                                }
+                                            },
+                                            onNavigateToConnections = { userId, initialTab ->
+                                                backStack.add(Route.Connections(userId, initialTab))
+                                            }
+                                        )
+                                    }
+                                    is Route.UserProfile -> NavEntry(route) {
+                                        ProfileScreen(
+                                            userId = route.userId,
                                             onBackClick = {
                                                 if (backStack.size > 1) {
                                                     backStack.removeAt(backStack.size - 1)
@@ -136,6 +166,14 @@ class MainActivity : ComponentActivity() {
                                             onBackClick = {
                                                 if (backStack.size > 1) {
                                                     backStack.removeAt(backStack.size - 1)
+                                                }
+                                            },
+                                            onProfileClick = { clickedUserId: Long ->
+                                                if (clickedUserId == currentUserId) {
+                                                    backStack.clear()
+                                                    backStack.add(Route.Profile)
+                                                } else {
+                                                    backStack.add(Route.UserProfile(clickedUserId))
                                                 }
                                             }
                                         )
@@ -157,18 +195,18 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun BottomNavigationBar(
-    currentRoute: Route,
+    activeRoot: Route,
     onNavigate: (Route) -> Unit
 ) {
     NavigationBar {
         NavigationBarItem(
-            selected = currentRoute is Route.NewsFeed,
+            selected = activeRoot is Route.NewsFeed,
             onClick = { onNavigate(Route.NewsFeed) },
             icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
             label = { Text("Home") }
         )
         NavigationBarItem(
-            selected = currentRoute is Route.Profile,
+            selected = activeRoot is Route.Profile,
             onClick = { onNavigate(Route.Profile) },
             icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
             label = { Text("Profile") }
