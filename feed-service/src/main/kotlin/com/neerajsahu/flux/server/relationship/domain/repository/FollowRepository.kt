@@ -48,4 +48,10 @@ interface FollowRepository : JpaRepository<Follow, FollowId> {
 
     @Query("SELECT f FROM Follow f WHERE f.id.followerId = :followerId AND f.id.followeeId = :followeeId")
     fun findRelationship(followerId: Long, followeeId: Long): Optional<Follow>
+
+    @Query("""
+        SELECT f.id.followeeId FROM Follow f
+        WHERE f.id.followerId = :userId AND f.isValid = true AND f.id.followeeId IN :profileIds
+    """)
+    fun findFollowingIds(userId: Long, profileIds: List<Long>): List<Long>
 }
