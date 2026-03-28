@@ -95,4 +95,15 @@ class RelationshipController(
         val following = followService.getFollowingWithStatus(targetUserId, currentUser.id!!, page, size)
         return ResponseEntity.ok(following)
     }
+
+    @GetMapping("/search")
+    fun searchUsers(
+        @RequestParam query: String,
+        @AuthenticationPrincipal currentUser: User,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<List<ProfileResponse>> {
+        val searchResults = followService.searchGlobalUsers(query, currentUser.id!!, page, size)
+        return ResponseEntity.ok(searchResults)
+    }
 }

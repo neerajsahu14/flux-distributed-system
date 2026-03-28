@@ -205,4 +205,40 @@ class FollowService(
             )
         }
     }
+
+    @Transactional(readOnly = true)
+    fun searchGlobalUsers(query: String, currentUserId: Long, page: Int, size: Int): List<ProfileResponse> {
+        if (query.isBlank()) {
+            return emptyList()
+        }
+        
+        val pageable = PageRequest.of(page, size)
+        val usersPage = userRepository.searchUsersByUsername(query, pageable)
+        val users = usersPage.content
+
+        if (users.isEmpty()) {
+            return emptyList()
+        }
+
+        val profileIds = users.map { it.id!! }
+
+        val followingByCurrentUser = followRepository.findFollowingIds(currentUserId, profileIds).toSet()
+
+        return users.map { user ->
+            val isFollowing = followingByCurrentUser.contains(user.id)
+            // For now, doing individual query for isFollowedBy to be accurate, or using the existing method incorrectly?
+            // Let's do individual query for correctness, since it's only up to 'size' users.
+            val isFollowedBy = followRepository.isFollowing(user.id!!, currentUserId)
+            
+            ProfileResponse(
+                id = user.id,
+                username = user._username,
+                fullName = user._username, // Defaulting fullName to username
+                bio = user.bio,
+                isFollowing = isFollowing,
+                isFollowedBy = isFollowedBy,
+                profileImageUrl = user.profilePicUrl,
+            )
+        }
+    }
 }
