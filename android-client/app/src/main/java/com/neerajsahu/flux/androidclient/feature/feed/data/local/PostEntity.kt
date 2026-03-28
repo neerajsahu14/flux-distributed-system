@@ -16,6 +16,9 @@ data class PostEntity(
     val authorProfilePicUrl: String?,
     val createdAt: String,
     val likeCount: Int,
+    val shareCount: Int = 0,
+    val isLiked: Boolean = false,
+    val isBookmarked: Boolean = false,
     val cachedAt: Long = System.currentTimeMillis()
 )
 

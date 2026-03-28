@@ -9,6 +9,7 @@ import androidx.room.Room
 import com.neerajsahu.flux.androidclient.core.database.FluxDatabase
 import com.neerajsahu.flux.androidclient.feature.auth.data.local.UserDao
 import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostDao
+import com.neerajsahu.flux.androidclient.feature.interaction.data.local.InteractionDao
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsDao
 import dagger.Module
 import dagger.Provides
@@ -57,5 +58,11 @@ object AppModule {
     @Singleton
     fun providePostDao(database: FluxDatabase): PostDao {
         return database.postDao
+    }
+
+    @Provides
+    @Singleton
+    fun provideInteractionDao(database: FluxDatabase): InteractionDao {
+        return database.interactionDao
     }
 }

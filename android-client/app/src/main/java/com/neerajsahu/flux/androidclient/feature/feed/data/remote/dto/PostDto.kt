@@ -19,7 +19,10 @@ data class PostResponseDto(
     @SerializedName("imageUrl") val imageUrl: String,
     @SerializedName("author") val author: FeedAuthorDto,
     @SerializedName("createdAt") val createdAt: String,
-    @SerializedName("likeCount") val likeCount: Int
+    @SerializedName("likeCount") val likeCount: Int,
+    @SerializedName("shareCount") val shareCount: Int? = null,
+    @SerializedName("isLiked") val isLiked: Boolean? = null,
+    @SerializedName("isBookmarked") val isBookmarked: Boolean? = null
 )
 
 data class AttachmentResponseDto(
@@ -59,7 +62,10 @@ fun PostResponseDto.toEntity(scope: String): PostEntity {
         authorUsername = author.username,
         authorProfilePicUrl = author.profilePicUrl,
         createdAt = createdAt,
-        likeCount = likeCount
+        likeCount = likeCount,
+        shareCount = shareCount ?: 0,
+        isLiked = isLiked ?: false,
+        isBookmarked = isBookmarked ?: false
     )
 }
 
@@ -74,7 +80,10 @@ fun PostEntity.toDomain(): Post {
             profilePicUrl = authorProfilePicUrl
         ),
         createdAt = createdAt,
-        likeCount = likeCount
+        likeCount = likeCount,
+        shareCount = shareCount,
+        isLiked = isLiked,
+        isBookmarked = isBookmarked
     )
 }
 
@@ -89,7 +98,10 @@ fun PostResponseDto.toDomain(): Post {
             profilePicUrl = author.profilePicUrl
         ),
         createdAt = createdAt,
-        likeCount = likeCount
+        likeCount = likeCount,
+        shareCount = shareCount ?: 0,
+        isLiked = isLiked ?: false,
+        isBookmarked = isBookmarked ?: false
     )
 }
 

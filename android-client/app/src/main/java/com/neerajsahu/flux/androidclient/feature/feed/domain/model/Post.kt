@@ -12,7 +12,10 @@ data class Post(
     val imageUrl: String,
     val author: FeedAuthor,
     val createdAt: String,
-    val likeCount: Int
+    val likeCount: Int,
+    val shareCount: Int = 0,
+    val isLiked: Boolean = false,
+    val isBookmarked: Boolean = false
 )
 
 data class Attachment(

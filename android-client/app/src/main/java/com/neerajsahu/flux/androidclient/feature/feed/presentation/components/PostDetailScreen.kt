@@ -38,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.neerajsahu.flux.androidclient.feature.interaction.presentation.components.InteractionBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -183,14 +184,16 @@ fun PostDetailScreen(
                             }
 
                             // Engagement stats
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                Text(text = "❤️ ${post.likeCount} Likes")
-                                Text(text = "💬 0 Comments")
-                                Text(text = "↗️ ${post.shareCount} Shares")
-                            }
+                            InteractionBar(
+                                isLiked = post.isLiked,
+                                isBookmarked = post.isBookmarked,
+                                likeCount = post.likeCount,
+                                shareCount = post.shareCount,
+                                isInteractionInFlight = state.isInteractionInFlight,
+                                onLikeClick = viewModel::onLikeClick,
+                                onBookmarkClick = viewModel::onBookmarkClick,
+                                onShareClick = viewModel::onShareClick
+                            )
                         }
                     }
 
