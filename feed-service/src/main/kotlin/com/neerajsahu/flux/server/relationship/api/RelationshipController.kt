@@ -17,7 +17,6 @@ class RelationshipController(
     private val followService: FollowService
 ) {
 
-    // 1. Follow / Unfollow Toggle
     @PostMapping("/follow/{targetUserId}")
     fun toggleFollow(
         @PathVariable targetUserId: Long,
@@ -28,28 +27,6 @@ class RelationshipController(
         return ResponseEntity.ok(FollowActionResponse(status, targetUserId))
     }
 
-    // 2. Get Followers List (Pagination)
-    @GetMapping("/followers/{userId}")
-    fun getFollowers(
-        @PathVariable userId: Long,
-        @AuthenticationPrincipal currentUser: User,
-        @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "20") size: Int
-    ): ResponseEntity<List<ProfileResponse>> {
-        return ResponseEntity.ok(followService.getFollowers(userId, currentUser.id!!, page, size))
-    }
-
-    // 3. Get Following List (Pagination)
-    @GetMapping("/following/{userId}")
-    fun getFollowing(
-        @PathVariable userId: Long,
-        @AuthenticationPrincipal currentUser: User,
-        @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "20") size: Int
-    ): ResponseEntity<List<ProfileResponse>> {
-        return ResponseEntity.ok(followService.getFollowing(userId, currentUser.id!!, page, size))
-    }
-
     @GetMapping("/info/{targetUserId}")
     fun getRelationshipInfo(
         @PathVariable targetUserId: Long,
@@ -57,7 +34,7 @@ class RelationshipController(
     ): ResponseEntity<RelationshipInfoResponse> {
         return ResponseEntity.ok(followService.getRelationshipInfo(targetUserId, currentUser.id!!))
     }
-    // Get Complete Profile Stats
+
     @GetMapping("/stats/{targetUserId}")
     fun getTargetProfileStats(
         @PathVariable targetUserId: Long,
