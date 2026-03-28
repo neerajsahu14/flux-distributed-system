@@ -12,9 +12,7 @@ import com.neerajsahu.flux.androidclient.feature.relationship.data.worker.Follow
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.ProfileStats
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.RelationshipUser
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.repository.RelationshipRepository
-import com.neerajsahu.flux.androidclient.feature.relationship.mapper.toProfileStats
-import com.neerajsahu.flux.androidclient.feature.relationship.mapper.toProfileStatsEntity
-import com.neerajsahu.flux.androidclient.feature.relationship.mapper.toRelationshipUser
+import com.neerajsahu.flux.androidclient.feature.relationship.mapper.*
 import kotlinx.coroutines.flow.*
 import retrofit2.HttpException
 import java.io.IOException
@@ -27,7 +25,8 @@ class RelationshipRepositoryImpl @Inject constructor(
     private val tokenManager: TokenManager
 ) : RelationshipRepository {
 
-    private val CACHE_LIMIT = 20
+    private val CACHE_LIMIT_STATS = 20
+    private val CACHE_LIMIT_PROFILES = 50
 
     override suspend fun toggleFollow(targetUserId: Long, requestId: String): AppResult<FollowActionResponse> {
         return try {
@@ -68,21 +67,33 @@ class RelationshipRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getFollowers(userId: Long, page: Int, size: Int): AppResult<List<RelationshipUser>> {
-        return try {
+    override fun getFollowers(userId: Long, page: Int, size: Int): Flow<AppResult<List<RelationshipUser>>> = flow {
+        try {
             val response = api.getFollowers(userId, page, size)
-            AppResult.Success(response.map { it.toRelationshipUser() })
+            val entities = response.map { it.toProfileEntity() }
+            profileStatsDao.insertProfiles(entities)
+            
+            val currentUserId = tokenManager.getUserId().first() ?: 0L
+            profileStatsDao.pruneOldProfiles(currentUserId, CACHE_LIMIT_PROFILES)
+            
+            emit(AppResult.Success(response.map { it.toRelationshipUser() }))
         } catch (e: Exception) {
-            AppResult.Error(e.message ?: "An unknown error occurred")
+            emit(AppResult.Error(e.message ?: "Failed to load followers"))
         }
     }
 
-    override suspend fun getFollowing(userId: Long, page: Int, size: Int): AppResult<List<RelationshipUser>> {
-        return try {
+    override fun getFollowing(userId: Long, page: Int, size: Int): Flow<AppResult<List<RelationshipUser>>> = flow {
+        try {
             val response = api.getFollowing(userId, page, size)
-            AppResult.Success(response.map { it.toRelationshipUser() })
+            val entities = response.map { it.toProfileEntity() }
+            profileStatsDao.insertProfiles(entities)
+            
+            val currentUserId = tokenManager.getUserId().first() ?: 0L
+            profileStatsDao.pruneOldProfiles(currentUserId, CACHE_LIMIT_PROFILES)
+            
+            emit(AppResult.Success(response.map { it.toRelationshipUser() }))
         } catch (e: Exception) {
-            AppResult.Error(e.message ?: "An unknown error occurred")
+            emit(AppResult.Error(e.message ?: "Failed to load following"))
         }
     }
 
@@ -114,8 +125,7 @@ class RelationshipRepositoryImpl @Inject constructor(
             val remoteStats = api.getTargetProfileStats(resolvedUserId)
             profileStatsDao.insertProfileStats(remoteStats.toProfileStatsEntity())
 
-            val currentUserId = if (tokenUserId > 0L) tokenUserId else resolvedUserId
-            profileStatsDao.pruneOldProfiles(currentUserId, CACHE_LIMIT)
+            profileStatsDao.pruneOldProfileStats(tokenUserId, CACHE_LIMIT_STATS)
 
             emit(AppResult.Success(remoteStats.toProfileStats()))
         } catch (e: HttpException) {
@@ -129,22 +139,55 @@ class RelationshipRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getCurrentUserProfileStats(): AppResult<ProfileStatsResponse> {
-        return try {
+    override fun getCurrentUserProfileStats(): Flow<AppResult<ProfileStats>> = flow {
+        val currentUserId = tokenManager.getUserId().first() ?: 0L
+        
+        var cachedStats: ProfileStats? = null
+        if (currentUserId > 0L) {
+            val cached = profileStatsDao.getProfileStatsById(currentUserId).first()
+            if (cached != null) {
+                cachedStats = cached.toProfileStats()
+                emit(AppResult.Success(cachedStats))
+            }
+        }
+
+        try {
             val response = api.getCurrentUserProfileStats()
             profileStatsDao.insertProfileStats(response.toProfileStatsEntity())
-            AppResult.Success(response)
+            
+            val userId = response.profile.id
+            if (currentUserId == 0L) {
+                tokenManager.saveUserId(userId)
+            }
+            
+            emit(AppResult.Success(response.toProfileStats()))
         } catch (e: Exception) {
-            AppResult.Error(e.message ?: "An unknown error occurred")
+            if (cachedStats == null) {
+                emit(AppResult.Error(e.message ?: "Failed to load profile stats"))
+            }
         }
     }
 
-    override suspend fun searchUsers(query: String, page: Int, size: Int): AppResult<List<RelationshipUser>> {
-        return try {
+    override fun searchUsers(query: String, page: Int, size: Int): Flow<AppResult<List<RelationshipUser>>> = flow {
+        // Emit cached results matching the query first
+        val cached = profileStatsDao.searchProfiles(query, size).first()
+        if (cached.isNotEmpty()) {
+            emit(AppResult.Success(cached.map { it.toRelationshipUser() }))
+        }
+
+        try {
             val response = api.searchUsers(query, page, size)
-            AppResult.Success(response.map { it.toRelationshipUser() })
+            val entities = response.map { it.toProfileEntity() }
+            profileStatsDao.insertProfiles(entities)
+            
+            val currentUserId = tokenManager.getUserId().first() ?: 0L
+            profileStatsDao.pruneOldProfiles(currentUserId, CACHE_LIMIT_PROFILES)
+            
+            emit(AppResult.Success(response.map { it.toRelationshipUser() }))
         } catch (e: Exception) {
-            AppResult.Error(e.message ?: "Search failed")
+            if (cached.isEmpty()) {
+                emit(AppResult.Error(e.message ?: "Search failed"))
+            }
         }
     }
 }

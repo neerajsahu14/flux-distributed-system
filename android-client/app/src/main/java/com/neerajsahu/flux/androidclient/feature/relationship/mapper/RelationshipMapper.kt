@@ -1,5 +1,6 @@
 package com.neerajsahu.flux.androidclient.feature.relationship.mapper
 
+import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileEntity
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsEntity
 import com.neerajsahu.flux.androidclient.feature.relationship.data.remote.dto.ProfileResponse
 import com.neerajsahu.flux.androidclient.feature.relationship.data.remote.dto.ProfileStatsResponse
@@ -52,6 +53,29 @@ fun ProfileStatsResponse.toProfileStats(): ProfileStats {
 }
 
 fun ProfileResponse.toRelationshipUser(): RelationshipUser {
+    return RelationshipUser(
+        id = id,
+        username = username,
+        fullName = fullName,
+        profilePicUrl = profilePicUrl,
+        isFollowing = isFollowing,
+        isFollowedBy = isFollowedBy
+    )
+}
+
+fun ProfileResponse.toProfileEntity(): ProfileEntity {
+    return ProfileEntity(
+        id = id,
+        username = username,
+        fullName = fullName,
+        profilePicUrl = profilePicUrl,
+        bio = bio,
+        isFollowing = isFollowing,
+        isFollowedBy = isFollowedBy
+    )
+}
+
+fun ProfileEntity.toRelationshipUser(): RelationshipUser {
     return RelationshipUser(
         id = id,
         username = username,
