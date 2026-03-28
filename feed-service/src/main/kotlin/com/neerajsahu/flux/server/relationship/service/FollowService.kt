@@ -1,6 +1,5 @@
 package com.neerajsahu.flux.server.relationship.service
 
-import com.neerajsahu.flux.server.auth.api.dto.UserResponse
 import com.neerajsahu.flux.server.auth.domain.model.User
 import com.neerajsahu.flux.server.auth.domain.repository.UserRepository
 import com.neerajsahu.flux.server.feed.domain.repository.PostRepository
@@ -13,7 +12,6 @@ import com.neerajsahu.flux.server.relationship.domain.repository.FollowRepositor
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
 
 @Service
 class FollowService(
@@ -60,36 +58,15 @@ class FollowService(
             "Followed"
         }
     }
-    fun getFollowers(userId: Long, page: Int, size: Int): List<UserResponse> {
+    fun getFollowers(userId: Long, currentUserId: Long, page: Int, size: Int): List<ProfileResponse> {
         val pageable = PageRequest.of(page, size)
-        val usersPage = followRepository.findFollowersByUserId(userId, pageable)
-
-        // Auth module ka mapper use kar sakte ho ya manual map kar lo
-        return usersPage.content.map { user ->
-            UserResponse(
-                id = user.id!!,
-                username = user.username,
-                email = user.email,
-                bio = user.bio,
-                profilePicUrl = user.profilePicUrl
-            )
-        }
+        return followRepository.findFollowerProfilesWithStatus(userId, currentUserId, pageable).content
     }
 
     // 2. Get Following List
-    fun getFollowing(userId: Long, page: Int, size: Int): List<UserResponse> {
+    fun getFollowing(userId: Long, currentUserId: Long, page: Int, size: Int): List<ProfileResponse> {
         val pageable = PageRequest.of(page, size)
-        val usersPage = followRepository.findFollowingByUserId(userId, pageable)
-
-        return usersPage.content.map { user ->
-            UserResponse(
-                id = user.id!!,
-                username = user.username,
-                email = user.email,
-                bio = user.bio,
-                profilePicUrl = user.profilePicUrl
-            )
-        }
+        return followRepository.findFollowingProfilesWithStatus(userId, currentUserId, pageable).content
     }
 
     // 3. Get Counts & Status (Profile Header ke liye)
@@ -108,41 +85,19 @@ class FollowService(
     }
 
     fun getProfileStats(targetUserId: Long, currentUserId: Long): ProfileStatsResponse {
-        val targetUser = userRepository.findById(targetUserId)
-            .orElseThrow { RuntimeException("User not found") }
+        val profile = followRepository.findProfileWithStatus(targetUserId, currentUserId)
+            ?: throw RuntimeException("User not found")
 
         val posts = postRepository.countByAuthorId(targetUserId)
         val followers = followRepository.countFollowers(targetUserId)
         val following = followRepository.countFollowing(targetUserId)
 
-        val isFollowing = if (targetUserId == currentUserId) {
-            false
-        } else {
-            followRepository.isFollowing(currentUserId, targetUserId)
-        }
-        
-        // Ensure followedByCurrentUser is false if target == current
-        val isFollowedBy = if (targetUserId == currentUserId) {
-            false
-        } else {
-            followRepository.isFollowing(targetUserId, currentUserId)
-        }
-
-
         return ProfileStatsResponse(
-            profile = ProfileResponse(
-                id = targetUser.id!!,
-                username = targetUser._username,
-                profileImageUrl = targetUser.profilePicUrl,
-                fullName = targetUser._username,
-                bio = targetUser.bio,
-                isFollowing = isFollowing,
-                isFollowedBy = isFollowedBy
-            ),
+            profile = profile,
             postCount = posts,
             followersCount = followers,
             followingCount = following,
-            isFollowing = isFollowing
+            isFollowing = profile.isFollowing
         )
     }
 
@@ -153,57 +108,13 @@ class FollowService(
     @Transactional(readOnly = true)
     fun getFollowersWithStatus(targetUserId: Long, currentUserId: Long, page: Int, size: Int): List<ProfileResponse> {
         val pageable = PageRequest.of(page, size)
-        val followersPage = followRepository.findFollowersByUserId(targetUserId, pageable)
-        val followerUsers = followersPage.content
-
-        if (followerUsers.isEmpty()) {
-            return emptyList()
-        }
-
-        val profileIds = followerUsers.map { it.id!! }
-
-        val followingByCurrentUser = followRepository.findFollowingIds(currentUserId, profileIds).toSet()
-        val followedByCurrentUser = followRepository.findFollowingIds(targetUserId, profileIds).toSet()
-
-        return followerUsers.map { user ->
-            ProfileResponse(
-                id = user.id!!,
-                username = user._username,
-                fullName = user._username,
-                profileImageUrl = user.profilePicUrl,
-                bio = user.bio,
-                isFollowing = followingByCurrentUser.contains(user.id),
-                isFollowedBy = followedByCurrentUser.contains(user.id)
-            )
-        }
+        return followRepository.findFollowerProfilesWithStatus(targetUserId, currentUserId, pageable).content
     }
 
     @Transactional(readOnly = true)
     fun getFollowingWithStatus(targetUserId: Long, currentUserId: Long, page: Int, size: Int): List<ProfileResponse> {
         val pageable = PageRequest.of(page, size)
-        val followingPage = followRepository.findFollowingByUserId(targetUserId, pageable)
-        val followingUsers = followingPage.content
-
-        if (followingUsers.isEmpty()) {
-            return emptyList()
-        }
-
-        val profileIds = followingUsers.map { it.id!! }
-
-        val followingByCurrentUser = followRepository.findFollowingIds(currentUserId, profileIds).toSet()
-        val followedByCurrentUser = followRepository.findFollowingIds(targetUserId, profileIds).toSet()
-
-        return followingUsers.map { user ->
-            ProfileResponse(
-                id = user.id!!,
-                username = user._username,
-                fullName = user._username,
-                profileImageUrl = user.profilePicUrl,
-                bio = user.bio,
-                isFollowing = followingByCurrentUser.contains(user.id),
-                isFollowedBy = followedByCurrentUser.contains(user.id)
-            )
-        }
+        return followRepository.findFollowingProfilesWithStatus(targetUserId, currentUserId, pageable).content
     }
 
     @Transactional(readOnly = true)
@@ -211,34 +122,8 @@ class FollowService(
         if (query.isBlank()) {
             return emptyList()
         }
-        
+
         val pageable = PageRequest.of(page, size)
-        val usersPage = userRepository.searchUsersByUsername(query, pageable)
-        val users = usersPage.content
-
-        if (users.isEmpty()) {
-            return emptyList()
-        }
-
-        val profileIds = users.map { it.id!! }
-
-        val followingByCurrentUser = followRepository.findFollowingIds(currentUserId, profileIds).toSet()
-
-        return users.map { user ->
-            val isFollowing = followingByCurrentUser.contains(user.id)
-            // For now, doing individual query for isFollowedBy to be accurate, or using the existing method incorrectly?
-            // Let's do individual query for correctness, since it's only up to 'size' users.
-            val isFollowedBy = followRepository.isFollowing(user.id!!, currentUserId)
-            
-            ProfileResponse(
-                id = user.id,
-                username = user._username,
-                fullName = user._username, // Defaulting fullName to username
-                bio = user.bio,
-                isFollowing = isFollowing,
-                isFollowedBy = isFollowedBy,
-                profileImageUrl = user.profilePicUrl,
-            )
-        }
+        return followRepository.searchProfilesWithStatus(query, currentUserId, pageable).content
     }
 }
