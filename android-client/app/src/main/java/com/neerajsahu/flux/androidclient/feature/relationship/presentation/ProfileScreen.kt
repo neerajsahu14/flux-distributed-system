@@ -1,6 +1,5 @@
 package com.neerajsahu.flux.androidclient.feature.relationship.presentation
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +8,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,12 +28,17 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.neerajsahu.flux.androidclient.R
+import com.neerajsahu.flux.androidclient.core.ui.components.FluxLineBackground
+import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
+import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
+import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
 
 @Composable
 fun ProfileScreen(
     userId: Long,
     viewModel: ProfileViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
+    onPostClick: (Long) -> Unit = {},
     onNavigateToConnections: (Long, Int) -> Unit
 ) {
     val state = viewModel.state.value
@@ -43,12 +50,15 @@ fun ProfileScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(FluxBackgroundDark)
     ) {
+        // Flux Line Background for consistency
+        FluxLineBackground(modifier = Modifier.fillMaxSize())
+
         if (state.isLoading && state.profile == null) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
-                color = Color(0xFF00E5FF)
+                color = FluxCyan
             )
         } else if (state.error != null && state.profile == null) {
             Text(
@@ -58,11 +68,12 @@ fun ProfileScreen(
             )
         } else if (state.profile != null) {
             val profile = state.profile
+            
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                    .padding(bottom = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 FluxHeader(username = profile.username, onBackClick = onBackClick)
@@ -87,7 +98,7 @@ fun ProfileScreen(
                         color = Color.White.copy(alpha = 0.8f),
                         textAlign = TextAlign.Center,
                         lineHeight = 22.sp,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = 40.dp)
                     )
                 }
 
@@ -103,7 +114,11 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                PostsSection()
+                PostsSection(
+                    posts = state.posts,
+                    isLoading = state.isPostsLoading,
+                    onPostClick = onPostClick
+                )
             }
         }
     }
@@ -112,7 +127,10 @@ fun ProfileScreen(
 @Composable
 fun FluxHeader(username: String, onBackClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -120,20 +138,20 @@ fun FluxHeader(username: String, onBackClick: () -> Unit) {
             onClick = onBackClick,
             modifier = Modifier
                 .background(Color.White.copy(alpha = 0.1f), CircleShape)
-                .size(44.dp)
+                .size(40.dp)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_lock), // Replace with back icon if available
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
                 tint = Color.White,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
 
         Text(
             text = "@$username",
             fontSize = 16.sp,
-            color = Color.White.copy(alpha = 0.6f),
+            color = Color.White,
             fontWeight = FontWeight.Bold
         )
         
@@ -141,13 +159,13 @@ fun FluxHeader(username: String, onBackClick: () -> Unit) {
             onClick = { },
             modifier = Modifier
                 .background(Color.White.copy(alpha = 0.1f), CircleShape)
-                .size(44.dp)
+                .size(40.dp)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_person),
+                imageVector = Icons.Default.Settings,
                 contentDescription = "Settings",
                 tint = Color.White.copy(alpha = 0.7f),
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
     }
@@ -156,18 +174,18 @@ fun FluxHeader(username: String, onBackClick: () -> Unit) {
 @Composable
 fun ProfileActions(isFollowing: Boolean, onFollowClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Button(
             onClick = onFollowClick,
             modifier = Modifier
-                .weight(1f)
-                .height(52.dp),
+                .fillMaxWidth(0.6f)
+                .height(48.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             contentPadding = PaddingValues(0.dp),
-            shape = RoundedCornerShape(26.dp)
+            shape = RoundedCornerShape(24.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -176,7 +194,7 @@ fun ProfileActions(isFollowing: Boolean, onFollowClick: () -> Unit) {
                         brush = if (isFollowing) {
                             Brush.horizontalGradient(colors = listOf(Color(0xFF1E293B), Color(0xFF334155)))
                         } else {
-                            Brush.horizontalGradient(colors = listOf(Color(0xFF00E5FF), Color(0xFF32F0FF)))
+                            Brush.horizontalGradient(colors = listOf(FluxCyan, Color(0xFF32F0FF)))
                         }
                     ),
                 contentAlignment = Alignment.Center
@@ -184,8 +202,8 @@ fun ProfileActions(isFollowing: Boolean, onFollowClick: () -> Unit) {
                 Text(
                     text = if (isFollowing) "Following" else "Follow",
                     color = if (isFollowing) Color.White else Color.Black,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 16.sp
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
                 )
             }
         }
@@ -200,28 +218,30 @@ fun StatsCard(
     onFollowersClick: () -> Unit,
     onFollowingClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF161B22)),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 20.dp),
+                .padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            StatColumn(label = "Posts", value = posts, color = Color(0xFF00E5FF))
-            Box(modifier = Modifier.width(1.dp).height(36.dp).background(Color.White.copy(alpha = 0.1f)))
+            StatColumn(label = "Posts", value = posts, color = FluxCyan)
+            Box(modifier = Modifier.width(1.dp).height(32.dp).background(Color.White.copy(alpha = 0.1f)))
             StatColumn(
                 label = "Followers", 
                 value = followers, 
                 color = Color(0xFFE040FB),
                 modifier = Modifier.clickable { onFollowersClick() }
             )
-            Box(modifier = Modifier.width(1.dp).height(36.dp).background(Color.White.copy(alpha = 0.1f)))
+            Box(modifier = Modifier.width(1.dp).height(32.dp).background(Color.White.copy(alpha = 0.1f)))
             StatColumn(
                 label = "Following", 
                 value = following, 
@@ -238,10 +258,10 @@ fun StatColumn(label: String, value: String, color: Color, modifier: Modifier = 
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.padding(horizontal = 8.dp)
     ) {
-        Text(text = label, fontSize = 14.sp, color = Color.Gray)
+        Text(text = label, fontSize = 12.sp, color = Color.Gray)
         Text(
             text = value,
-            fontSize = 22.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Black,
             color = color
         )
@@ -251,23 +271,25 @@ fun StatColumn(label: String, value: String, color: Color, modifier: Modifier = 
 @Composable
 fun GlowingAvatar(profilePicUrl: String?) {
     Box(
-        modifier = Modifier.size(160.dp),
+        modifier = Modifier.size(140.dp),
         contentAlignment = Alignment.Center
     ) {
+        // Outer glow/border
         Box(
             modifier = Modifier
-                .size(150.dp)
+                .size(136.dp)
                 .border(
-                    width = 3.dp,
+                    width = 2.dp,
                     brush = Brush.sweepGradient(
-                        listOf(Color(0xFF00E5FF), Color(0xFFE040FB), Color(0xFF00E5FF))
+                        listOf(FluxCyan, Color(0xFFE040FB), FluxCyan)
                     ),
                     shape = CircleShape
                 )
         )
+        // Avatar container
         Box(
             modifier = Modifier
-                .size(130.dp)
+                .size(120.dp)
                 .clip(CircleShape)
                 .background(Color(0xFF1C2128)),
             contentAlignment = Alignment.Center
@@ -277,7 +299,7 @@ fun GlowingAvatar(profilePicUrl: String?) {
                     painter = painterResource(id = R.drawable.ic_person),
                     contentDescription = null,
                     tint = Color.Gray,
-                    modifier = Modifier.fillMaxSize(0.6f)
+                    modifier = Modifier.fillMaxSize(0.5f)
                 )
             } else {
                 SubcomposeAsyncImage(
@@ -288,8 +310,8 @@ fun GlowingAvatar(profilePicUrl: String?) {
                     loading = {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(32.dp),
-                                color = Color(0xFF00E5FF),
+                                modifier = Modifier.size(24.dp),
+                                color = FluxCyan,
                                 strokeWidth = 2.dp
                             )
                         }
@@ -299,7 +321,7 @@ fun GlowingAvatar(profilePicUrl: String?) {
                             painter = painterResource(id = R.drawable.ic_person),
                             contentDescription = null,
                             tint = Color.Gray,
-                            modifier = Modifier.fillMaxSize(0.6f)
+                            modifier = Modifier.fillMaxSize(0.5f)
                         )
                     }
                 )
@@ -309,15 +331,96 @@ fun GlowingAvatar(profilePicUrl: String?) {
 }
 
 @Composable
-fun PostsSection() {
-    Column(modifier = Modifier.fillMaxWidth()) {
+fun PostsSection(
+    posts: List<Post>,
+    isLoading: Boolean,
+    onPostClick: (Long) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+    ) {
         Text(
             text = "POSTS",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
+            fontSize = 14.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White,
+            letterSpacing = 2.sp
         )
+        
         Spacer(modifier = Modifier.height(16.dp))
-        Box(modifier = Modifier.fillMaxWidth().height(200.dp).background(Color(0xFF161B22), RoundedCornerShape(16.dp)))
+        
+        if (isLoading && posts.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = FluxCyan)
+            }
+        } else if (posts.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White.copy(alpha = 0.05f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "No posts yet", color = Color.Gray)
+            }
+        } else {
+            // Displaying posts in a grid.
+            val chunkedPosts = posts.chunked(3)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                chunkedPosts.forEach { rowPosts ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        rowPosts.forEach { post ->
+                            PostGridItem(
+                                post = post,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onPostClick(post.id) }
+                            )
+                        }
+                        // Fill empty spots in the last row if needed
+                        repeat(3 - rowPosts.size) {
+                            Box(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PostGridItem(post: Post, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .clickable { onClick() }
+    ) {
+        SubcomposeAsyncImage(
+            model = post.imageUrl,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+            loading = {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = FluxCyan,
+                        strokeWidth = 1.dp
+                    )
+                }
+            }
+        )
     }
 }

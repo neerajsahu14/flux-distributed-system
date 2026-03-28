@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
+import com.neerajsahu.flux.androidclient.feature.feed.domain.repository.FeedRepository
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.ProfileStats
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.RelationshipUser
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.repository.RelationshipRepository
@@ -20,12 +22,15 @@ data class ProfileState(
     val profile: ProfileStats? = null,
     val followers: List<RelationshipUser> = emptyList(),
     val following: List<RelationshipUser> = emptyList(),
+    val posts: List<Post> = emptyList(),
+    val isPostsLoading: Boolean = false,
     val error: String? = null
 )
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val repository: RelationshipRepository
+    private val repository: RelationshipRepository,
+    private val feedRepository: FeedRepository
 ) : ViewModel() {
 
     private val _state = mutableStateOf(ProfileState())
@@ -50,6 +55,28 @@ class ProfileViewModel @Inject constructor(
                     _state.value = _state.value.copy(
                         error = result.message,
                         isLoading = false
+                    )
+                }
+            }
+        }.launchIn(viewModelScope)
+        
+        getUserPosts(userId)
+    }
+
+    private fun getUserPosts(userId: Long) {
+        _state.value = _state.value.copy(isPostsLoading = true)
+        feedRepository.getUserFeed(userId, 0, 50).onEach { result ->
+            when (result) {
+                is AppResult.Success -> {
+                    _state.value = _state.value.copy(
+                        posts = result.data,
+                        isPostsLoading = false
+                    )
+                }
+                is AppResult.Error -> {
+                    _state.value = _state.value.copy(
+                        isPostsLoading = false,
+                        error = result.message
                     )
                 }
             }

@@ -138,4 +138,13 @@ class RelationshipRepositoryImpl @Inject constructor(
             AppResult.Error(e.message ?: "An unknown error occurred")
         }
     }
+
+    override suspend fun searchUsers(query: String, page: Int, size: Int): AppResult<List<RelationshipUser>> {
+        return try {
+            val response = api.searchUsers(query, page, size)
+            AppResult.Success(response.map { it.toRelationshipUser() })
+        } catch (e: Exception) {
+            AppResult.Error(e.message ?: "Search failed")
+        }
+    }
 }

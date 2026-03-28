@@ -37,4 +37,11 @@ interface RelationshipApi {
 
     @GET("api/v1/relationship/stats/me")
     suspend fun getCurrentUserProfileStats(): ProfileStatsResponse
+
+    @GET("api/v1/relationship/search")
+    suspend fun searchUsers(
+        @Query("query") query: String,
+        @Query("page") page: Int,
+        @Query("size") size: Int
+    ): List<ProfileResponse>
 }
