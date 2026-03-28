@@ -33,6 +33,7 @@ import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxGlassWhite
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxRuby
 import com.neerajsahu.flux.androidclient.feature.interaction.presentation.components.InteractionBar
+import com.neerajsahu.flux.androidclient.feature.feed.data.mapper.formatFeedDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -312,7 +313,7 @@ fun FluxFeedPostCard(
                         )
                     )
                     Text(
-                        text = post.createdAt,
+                        text = formatFeedDateTime(post.createdAt),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.Gray
                     )

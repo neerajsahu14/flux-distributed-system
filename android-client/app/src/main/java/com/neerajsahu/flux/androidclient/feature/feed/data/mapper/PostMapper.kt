@@ -22,7 +22,7 @@ fun PostDetailResponseDto.toUiState(): PostUiState {
         authorName = this.author.username.replaceFirstChar { it.uppercase() },
         authorUsername = this.author.username,
         authorAvatarUrl = this.author.profilePicUrl,
-        timestamp = formatRelativeTime(this.createdAt),
+        timestamp = formatFeedDateTime(this.createdAt),
         caption = this.caption,
         mainMediaType = mapMediaType(this.mediaType),
         mainThumbnailUrl = this.imageUrl,
@@ -46,7 +46,7 @@ fun PostDetail.toUiState(): PostUiState {
         authorName = this.author.username.replaceFirstChar { it.uppercase() },
         authorUsername = this.author.username,
         authorAvatarUrl = this.author.profilePicUrl,
-        timestamp = formatRelativeTime(this.createdAt),
+        timestamp = formatFeedDateTime(this.createdAt),
         caption = this.caption,
         mainMediaType = mapMediaType(this.mediaType),
         mainThumbnailUrl = this.imageUrl,
@@ -93,7 +93,7 @@ private fun mapMediaType(type: String): MediaType {
     }
 }
 
-private fun formatRelativeTime(isoString: String): String {
+fun formatFeedDateTime(isoString: String): String {
     return try {
         val past = Instant.parse(isoString)
         val now = Instant.now()
