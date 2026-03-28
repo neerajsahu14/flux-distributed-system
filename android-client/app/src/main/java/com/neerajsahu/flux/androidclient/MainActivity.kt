@@ -255,6 +255,10 @@ class MainActivity : ComponentActivity() {
                                                 onBackClick = {
                                                     if (backStack.size > 1) {
                                                         backStack.removeAt(backStack.size - 1)
+                                                    } else {
+                                                        // If we're at the root of CreatePost tab, go to Feed
+                                                        backStack.clear()
+                                                        backStack.add(Route.NewsFeed)
                                                     }
                                                 },
                                                 onPostCreated = {
