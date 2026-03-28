@@ -32,26 +32,29 @@ class FeedController(
     // ==================== READ ====================
     @GetMapping("/posts")
     fun getGlobalFeed(
+        @AuthenticationPrincipal user: User,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int
     ): ResponseEntity<List<PostResponse>> {
-        return ResponseEntity.ok(feedService.getGlobalFeed(page, size))
+        return ResponseEntity.ok(feedService.getGlobalFeed(user.id!!, page, size))
     }
 
     @GetMapping("/user/{userId}/post")
     fun getUserFeed(
         @PathVariable userId: Long,
+        @AuthenticationPrincipal user: User,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int
     ): ResponseEntity<List<PostResponse>> {
-        return ResponseEntity.ok(feedService.getUserFeed(userId, page, size))
+        return ResponseEntity.ok(feedService.getUserFeed(user.id!!, userId, page, size))
     }
 
     @GetMapping("/post/{postId}")
     fun getPostByPostId(
-        @PathVariable postId: Long
+        @PathVariable postId: Long,
+        @AuthenticationPrincipal user: User
     ): ResponseEntity<PostResponse> {
-        return ResponseEntity.ok(feedService.findPostByPostId(postId))
+        return ResponseEntity.ok(feedService.findPostByPostId(user.id!!, postId))
     }
 
     @GetMapping("/post/{postId}/detail")

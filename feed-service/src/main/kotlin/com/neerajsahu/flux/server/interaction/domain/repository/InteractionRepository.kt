@@ -12,6 +12,12 @@ import org.springframework.stereotype.Repository
 @Repository
 interface InteractionRepository : JpaRepository<Interaction, Long> {
 
+    interface PostInteractionFlagsProjection {
+        val postId: Long
+        val likedCount: Long
+        val bookmarkedCount: Long
+    }
+
     fun existsByRequestId(requestId: String): Boolean
 
     @Query("""
@@ -32,6 +38,22 @@ interface InteractionRepository : JpaRepository<Interaction, Long> {
         AND i.isValid = true
     """)
     fun existsByUserIdAndPostIdAndActionType(userId: Long, postId: Long, actionType: ActionType): Boolean
+
+    @Query(
+        """
+        SELECT i.post.id AS postId,
+               SUM(CASE WHEN i.actionType = com.neerajsahu.flux.server.interaction.domain.model.ActionType.LIKED AND i.isValid = true THEN 1 ELSE 0 END) AS likedCount,
+               SUM(CASE WHEN i.actionType = com.neerajsahu.flux.server.interaction.domain.model.ActionType.BOOKMARKED AND i.isValid = true THEN 1 ELSE 0 END) AS bookmarkedCount
+        FROM Interaction i
+        WHERE i.user.id = :userId
+          AND i.post.id IN :postIds
+        GROUP BY i.post.id
+        """
+    )
+    fun findInteractionFlagsByUserIdAndPostIds(
+        userId: Long,
+        postIds: List<Long>
+    ): List<PostInteractionFlagsProjection>
 
     @Query(
         value = """
