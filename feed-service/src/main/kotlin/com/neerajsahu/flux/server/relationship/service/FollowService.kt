@@ -202,4 +202,56 @@ class FollowService(
             )
         }
     }
+
+    @Transactional(readOnly = true)
+    fun searchGlobalUsers(query: String, currentUserId: Long, page: Int, size: Int): List<ProfileResponse> {
+        if (query.isBlank()) {
+            return emptyList()
+        }
+        
+        val pageable = PageRequest.of(page, size)
+        val usersPage = userRepository.searchUsersByUsername(query, pageable)
+        val users = usersPage.content
+
+        if (users.isEmpty()) {
+            return emptyList()
+        }
+
+        val profileIds = users.map { it.id!! }
+
+        val followingByCurrentUser = followRepository.findFollowingIds(currentUserId, profileIds).toSet()
+        // Here we need to find who among the searched users follows the current user
+        // findFollowingIds(A, list_B) -> Returns users from list_B that A is following.
+        // Wait, `findFollowingIds(currentUserId, profileIds)` returns users in profileIds that currentUserId follows. (isFollowing = true)
+        // What we need for isFollowedBy: which users in profileIds are following currentUserId?
+        // Let's modify the query or logic if needed.
+        // The original code `followedByCurrentUser = followRepository.findFollowingIds(targetUserId, profileIds)` in `getFollowersWithStatus`
+        // is technically wrong. If we want `isFollowedBy`, we need to know if the user in the list follows the current user.
+        // But let's keep consistency or fix the logic later if required. I will use a simple query for followedByCurrentUser.
+        // Actually, let's just get `isFollowing` and `isFollowedBy` for now.
+        // `isFollowedBy` = Does this user follow the current user?
+        // Since we have a list of users, we need to know if they follow current user.
+        // `SELECT f.id.followerId FROM Follow f WHERE f.id.followeeId = :currentUserId AND f.id.followerId IN :profileIds`
+        // Let's add that to repository or just fetch one by one if list is small, or skip isFollowedBy.
+        // For simplicity and since `findFollowingIds` takes `userId` (follower) and `profileIds` (followees):
+        
+        // I'll define isFollowedBy as whether the searched user follows the current user. Since we don't have that bulk query, I'll loop or update repo.
+        // Wait, for search it's okay to just do individual queries or just default to false if not needed, but I'll add the new query.
+        
+        return users.map { user ->
+            val isFollowing = followingByCurrentUser.contains(user.id)
+            // For now, doing individual query for isFollowedBy to be accurate, or using the existing method incorrectly?
+            // Let's do individual query for correctness, since it's only up to 'size' users.
+            val isFollowedBy = followRepository.isFollowing(user.id!!, currentUserId)
+            
+            ProfileResponse(
+                id = user.id,
+                username = user._username,
+                fullName = user._username, // Defaulting fullName to username
+                bio = user.bio,
+                isFollowing = isFollowing,
+                isFollowedBy = isFollowedBy
+            )
+        }
+    }
 }

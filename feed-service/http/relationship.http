@@ -34,4 +34,16 @@ Authorization: Bearer {{auth_token}}
 
 ### Get My Profile Stats
 GET http://localhost:8080/api/v1/relationship/stats/me
+Authorization: Bearer {{auth_token}}
 
+### Get Followers with Status
+GET http://localhost:8080/api/v1/relationship/1/followers?page=0&size=20
+Authorization: Bearer {{auth_token}}
+
+### Get Following with Status
+GET http://localhost:8080/api/v1/relationship/1/following?page=0&size=20
+Authorization: Bearer {{auth_token}}
+
+### Search Global Users
+GET http://localhost:8080/api/v1/relationship/search?query=de&page=0&size=20
+Authorization: Bearer {{auth_token}}
