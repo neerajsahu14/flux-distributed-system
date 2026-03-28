@@ -18,7 +18,12 @@ class PostMapper {
     /**
      * Maps a Post entity to PostResponse DTO
      */
-    fun toPostResponse(post: Post, userMapper: (User) -> UserResponse): PostResponse {
+    fun toPostResponse(
+        post: Post,
+        userMapper: (User) -> UserResponse,
+        isLiked: Boolean? = null,
+        isBookmarked: Boolean? = null
+    ): PostResponse {
         val attachment = getFirstValidAttachment(post)
         val displayImageUrl = attachment?.thumbnailUrl ?: attachment?.contentUrl ?: ""
 
@@ -28,7 +33,10 @@ class PostMapper {
             imageUrl = displayImageUrl,
             author = userMapper(post.author),
             createdAt = post.createdAt.toString(),
-            likeCount = post.likeCount
+            likeCount = post.likeCount,
+            shareCount = post.shareCount,
+            isLiked = isLiked,
+            isBookmarked = isBookmarked
         )
     }
 
