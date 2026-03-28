@@ -7,7 +7,9 @@ data class PostResponse(
     val caption: String?,
     val imageUrl: String,
     val author: UserResponse,
-
     val createdAt: String,
     val likeCount: Int,
+    val shareCount: Int? = null,
+    val isLiked: Boolean? = null,
+    val isBookmarked: Boolean? = null
 )

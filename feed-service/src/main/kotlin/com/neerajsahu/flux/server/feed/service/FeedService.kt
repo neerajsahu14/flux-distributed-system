@@ -97,32 +97,35 @@ class FeedService(
 
         savedPost.attachments.add(attachment)
 
-        return postMapper.toPostResponse(savedPost) { authService.getUserResponse(it) }
+        return postMapper.toPostResponse(savedPost, userMapper = { authService.getUserResponse(it) })
     }
 
     // ==================== READ ====================
     @Transactional(readOnly = true)
-    fun getGlobalFeed(page: Int, size: Int): List<PostResponse> {
+    fun getGlobalFeed(currentUserId: Long, page: Int, size: Int): List<PostResponse> {
         val pageable = PageRequest.of(page, size)
         val postsPage = postRepository.findAllPosts(pageable)
-        return postUtils.mapPageToPostResponses(postsPage) { post ->
-            postMapper.toPostResponse(post) { authService.getUserResponse(it) }
-        }
+        return mapPostsWithInteractionFlags(postsPage.content, currentUserId)
     }
 
     @Transactional(readOnly = true)
-    fun getUserFeed(userId: Long, page: Int, size: Int): List<PostResponse> {
+    fun getUserFeed(currentUserId: Long, userId: Long, page: Int, size: Int): List<PostResponse> {
         val pageable = PageRequest.of(page, size)
         val postsPage = postRepository.findPostsByAuthorId(userId, pageable)
-        return postUtils.mapPageToPostResponses(postsPage) { post ->
-            postMapper.toPostResponse(post) { authService.getUserResponse(it) }
-        }
+        return mapPostsWithInteractionFlags(postsPage.content, currentUserId)
     }
 
     @Transactional(readOnly = true)
-    fun findPostByPostId(postId: Long): PostResponse {
+    fun findPostByPostId(currentUserId: Long, postId: Long): PostResponse {
         val post = postUtils.getValidPostOrThrow(postId)
-        return postMapper.toPostResponse(post) { authService.getUserResponse(it) }
+        val flags = interactionService.getInteractionFlagsForPosts(currentUserId, listOf(postId))[postId]
+
+        return postMapper.toPostResponse(
+            post = post,
+            userMapper = { authService.getUserResponse(it) },
+            isLiked = flags?.isLiked ?: false,
+            isBookmarked = flags?.isBookmarked ?: false
+        )
     }
 
     @Transactional(readOnly = true)
@@ -140,13 +143,12 @@ class FeedService(
         )
     }
 
+    @Transactional(readOnly = true)
     fun getTimelineFeed(userId: Long, page: Int, size: Int): List<PostResponse> {
         val pageable = PageRequest.of(page, size)
-
-        // Asli magic yahan hai - Smart Query call ki
         val postsPage = postRepository.findTimelinePosts(userId, pageable)
 
-        return postsPage.content.map { mapToResponse(it) }
+        return mapPostsWithInteractionFlags(postsPage.content, userId)
     }
 
     // ==================== UPDATE ====================
@@ -164,7 +166,7 @@ class FeedService(
         post.updatedAt = Instant.now()
 
         val updatedPost = postRepository.save(post)
-        return postMapper.toPostResponse(updatedPost) { authService.getUserResponse(it) }
+        return postMapper.toPostResponse(updatedPost, userMapper = { authService.getUserResponse(it) })
     }
 
     // ==================== DELETE (Soft Delete) ====================
@@ -184,17 +186,22 @@ class FeedService(
 
         return true
     }
-    private fun mapToResponse(post: Post): PostResponse {
-        val attachment = if (post.attachments.isNotEmpty()) post.attachments[0] else null
-        val displayImageUrl = attachment?.thumbnailUrl ?: attachment?.contentUrl ?: ""
+    private fun mapPostsWithInteractionFlags(posts: List<Post>, currentUserId: Long): List<PostResponse> {
+        if (posts.isEmpty()) return emptyList()
 
-        return PostResponse(
-            id = post.id!!,
-            caption = post.content,
-            imageUrl = displayImageUrl,
-            author = authService.getUserResponse(post.author),
-            createdAt = post.createdAt.toString(),
-            likeCount = post.likeCount,
-        )
+        val postsWithAttachments = postUtils.fetchAttachmentsForPosts(posts)
+        val enrichedPosts = posts.map { post -> postsWithAttachments[post.id] ?: post }
+        val postIds = enrichedPosts.mapNotNull { it.id }
+        val flagsByPostId = interactionService.getInteractionFlagsForPosts(currentUserId, postIds)
+
+        return enrichedPosts.map { post ->
+            val flags = flagsByPostId[post.id] ?: InteractionService.PostInteractionFlags(false, false)
+            postMapper.toPostResponse(
+                post = post,
+                userMapper = { authService.getUserResponse(it) },
+                isLiked = flags.isLiked,
+                isBookmarked = flags.isBookmarked
+            )
+        }
     }
 }

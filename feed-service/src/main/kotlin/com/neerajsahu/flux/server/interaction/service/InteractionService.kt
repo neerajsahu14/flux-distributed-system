@@ -5,13 +5,13 @@ import com.neerajsahu.flux.server.auth.service.AuthService
 import com.neerajsahu.flux.server.common.mapper.PostMapper
 import com.neerajsahu.flux.server.common.util.PostUtils
 import com.neerajsahu.flux.server.feed.api.dto.PostResponse
+import com.neerajsahu.flux.server.feed.domain.model.Post
 import com.neerajsahu.flux.server.feed.domain.repository.PostRepository
 import com.neerajsahu.flux.server.interaction.api.dto.InteractionResponse
 import com.neerajsahu.flux.server.interaction.api.dto.ResponseActionType
 import com.neerajsahu.flux.server.interaction.domain.model.ActionType
 import com.neerajsahu.flux.server.interaction.domain.model.Interaction
 import com.neerajsahu.flux.server.interaction.domain.repository.InteractionRepository
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -24,7 +24,10 @@ class InteractionService(
     private val postMapper: PostMapper,
     private val postUtils: PostUtils
 ) {
-    private val logger = LoggerFactory.getLogger(InteractionService::class.java)
+    data class PostInteractionFlags(
+        val isLiked: Boolean,
+        val isBookmarked: Boolean
+    )
 
     @Transactional
     fun likePost(user: User, postId: Long, requestId: String): InteractionResponse {
@@ -105,7 +108,7 @@ class InteractionService(
 
     @Transactional
     fun unbookmarkPost(user: User, postId: Long, requestId: String): InteractionResponse {
-        val post = postUtils.getValidPostOrThrow(postId)
+        postUtils.getValidPostOrThrow(postId)
 
         if (interactionRepository.existsByRequestId(requestId)) {
             return InteractionResponse(postId, ResponseActionType.UNBOOKMARKED, true, "Already processed", 0)
@@ -143,18 +146,26 @@ class InteractionService(
     fun getBookmarkedPosts(user: User, page: Int, size: Int): List<PostResponse> {
         val pageable = PageRequest.of(page, size)
         val postsPage = interactionRepository.findPostsByUserIdAndActionType(user.id!!, ActionType.BOOKMARKED, pageable)
-        return postUtils.mapPageToPostResponses(postsPage) { post ->
-            postMapper.toPostResponse(post) { authService.getUserResponse(it) }
-        }
+        return mapPostsWithInteractionFlags(postsPage.content, user.id!!)
     }
 
     @Transactional(readOnly = true)
     fun getLikedPosts(user: User, page: Int, size: Int): List<PostResponse> {
         val pageable = PageRequest.of(page, size)
         val postsPage = interactionRepository.findPostsByUserIdAndActionType(user.id!!, ActionType.LIKED, pageable)
-        return postUtils.mapPageToPostResponses(postsPage) { post ->
-            postMapper.toPostResponse(post) { authService.getUserResponse(it) }
-        }
+        return mapPostsWithInteractionFlags(postsPage.content, user.id!!)
+    }
+
+    fun getInteractionFlagsForPosts(userId: Long, postIds: List<Long>): Map<Long, PostInteractionFlags> {
+        if (postIds.isEmpty()) return emptyMap()
+
+        return interactionRepository.findInteractionFlagsByUserIdAndPostIds(userId, postIds)
+            .associate { projection ->
+                projection.postId to PostInteractionFlags(
+                    isLiked = projection.likedCount > 0,
+                    isBookmarked = projection.bookmarkedCount > 0
+                )
+            }
     }
 
     fun isPostLikedByUser(userId: Long, postId: Long): Boolean =
@@ -162,4 +173,23 @@ class InteractionService(
 
     fun isPostBookmarkedByUser(userId: Long, postId: Long): Boolean =
         interactionRepository.existsByUserIdAndPostIdAndActionType(userId, postId, ActionType.BOOKMARKED)
+
+    private fun mapPostsWithInteractionFlags(posts: List<Post>, userId: Long): List<PostResponse> {
+        if (posts.isEmpty()) return emptyList()
+
+        val postsById = postUtils.fetchAttachmentsForPosts(posts)
+        val enrichedPosts = posts.map { postsById[it.id] ?: it }
+        val postIds = enrichedPosts.mapNotNull { it.id }
+        val flagsByPostId = getInteractionFlagsForPosts(userId, postIds)
+
+        return enrichedPosts.map { post ->
+            val flags = flagsByPostId[post.id] ?: PostInteractionFlags(false, false)
+            postMapper.toPostResponse(
+                post = post,
+                userMapper = { authService.getUserResponse(it) },
+                isLiked = flags.isLiked,
+                isBookmarked = flags.isBookmarked
+            )
+        }
+    }
 }
