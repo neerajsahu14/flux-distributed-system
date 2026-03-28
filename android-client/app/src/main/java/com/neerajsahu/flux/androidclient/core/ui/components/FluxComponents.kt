@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.neerajsahu.flux.androidclient.core.ui.theme.*
 import kotlin.math.sin
@@ -74,33 +75,9 @@ fun FluxLineBackground(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun FluxStrand(
-    startOffset: Offset,
-    endOffset: Offset,
-    alpha: Float = 0.3f
-) {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val path = Path().apply {
-            moveTo(startOffset.x, startOffset.y)
-            // Quadratic Bezier for a curved strand
-            val controlPoint = Offset(
-                x = (startOffset.x + endOffset.x) / 2 + 20f,
-                y = (startOffset.y + endOffset.y) / 2
-            )
-            quadraticTo(controlPoint.x, controlPoint.y, endOffset.x, endOffset.y)
-        }
-        drawPath(
-            path = path,
-            color = FluxCyan,
-            style = Stroke(width = 1f),
-            alpha = alpha
-        )
-    }
-}
-
-@Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable ColumnScope.() -> Unit
 ) {
     Box(
@@ -114,7 +91,7 @@ fun GlassCard(
             .border(0.5.dp, FluxGlassBorder, RoundedCornerShape(24.dp))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(contentPadding),
             content = content
         )
     }

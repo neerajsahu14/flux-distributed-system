@@ -3,8 +3,9 @@ package com.neerajsahu.flux.androidclient.feature.feed.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerajsahu.flux.androidclient.core.utils.AppResult
-import com.neerajsahu.flux.androidclient.feature.feed.domain.model.PostDetail
+import com.neerajsahu.flux.androidclient.feature.feed.data.mapper.toUiState
 import com.neerajsahu.flux.androidclient.feature.feed.domain.repository.FeedRepository
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.model.PostUiState
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.model.PostInteractionState
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionRepository
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionSyncSource
@@ -16,7 +17,7 @@ import javax.inject.Inject
 
 data class PostDetailUiState(
     val isLoading: Boolean = false,
-    val post: PostDetail? = null,
+    val post: PostUiState? = null,
     val error: String? = null,
     val isInteractionInFlight: Boolean = false
 )
@@ -50,7 +51,8 @@ class PostDetailViewModel @Inject constructor(
             when (val result = repository.getPostDetail(postId)) {
                 is AppResult.Success -> {
                     val sharedSnapshot = interactionSyncSource.snapshot()
-                    val syncedPost = result.data.applyShared(sharedSnapshot[result.data.id])
+                    val uiState = result.data.toUiState()
+                    val syncedPost = uiState.applyShared(sharedSnapshot[uiState.id])
                     _state.value = _state.value.copy(
                         isLoading = false,
                         post = syncedPost,
@@ -134,7 +136,7 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    private inline fun mutatePost(transform: (PostDetail) -> PostDetail) {
+    private inline fun mutatePost(transform: (PostUiState) -> PostUiState) {
         val current = _state.value.post ?: return
         _state.value = _state.value.copy(post = transform(current))
     }
@@ -162,7 +164,7 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    private fun PostDetail.applyShared(shared: PostInteractionState?): PostDetail {
+    private fun PostUiState.applyShared(shared: PostInteractionState?): PostUiState {
         if (shared == null) return this
         return copy(
             isLiked = shared.isLiked,
@@ -172,4 +174,3 @@ class PostDetailViewModel @Inject constructor(
         )
     }
 }
-
