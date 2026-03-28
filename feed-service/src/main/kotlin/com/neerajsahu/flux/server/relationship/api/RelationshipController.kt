@@ -1,7 +1,6 @@
 package com.neerajsahu.flux.server.relationship.api
 
 import com.neerajsahu.flux.server.auth.domain.model.User
-import com.neerajsahu.flux.server.auth.api.dto.UserResponse
 import com.neerajsahu.flux.server.relationship.api.dto.FollowActionResponse
 import com.neerajsahu.flux.server.relationship.api.dto.FollowRequest
 import com.neerajsahu.flux.server.relationship.api.dto.ProfileResponse
@@ -33,20 +32,22 @@ class RelationshipController(
     @GetMapping("/followers/{userId}")
     fun getFollowers(
         @PathVariable userId: Long,
+        @AuthenticationPrincipal currentUser: User,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int
-    ): ResponseEntity<List<UserResponse>> {
-        return ResponseEntity.ok(followService.getFollowers(userId, page, size))
+    ): ResponseEntity<List<ProfileResponse>> {
+        return ResponseEntity.ok(followService.getFollowers(userId, currentUser.id!!, page, size))
     }
 
     // 3. Get Following List (Pagination)
     @GetMapping("/following/{userId}")
     fun getFollowing(
         @PathVariable userId: Long,
+        @AuthenticationPrincipal currentUser: User,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int
-    ): ResponseEntity<List<UserResponse>> {
-        return ResponseEntity.ok(followService.getFollowing(userId, page, size))
+    ): ResponseEntity<List<ProfileResponse>> {
+        return ResponseEntity.ok(followService.getFollowing(userId, currentUser.id!!, page, size))
     }
 
     @GetMapping("/info/{targetUserId}")
