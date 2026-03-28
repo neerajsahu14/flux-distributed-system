@@ -9,6 +9,7 @@ import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostEntity
 import com.neerajsahu.flux.androidclient.feature.interaction.data.local.InteractionDao
 import com.neerajsahu.flux.androidclient.feature.interaction.data.local.InteractionEntity
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.PendingActionEntity
+import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileEntity
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsDao
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsEntity
 
@@ -16,11 +17,12 @@ import com.neerajsahu.flux.androidclient.feature.relationship.data.local.Profile
     entities = [
         UserEntity::class,
         ProfileStatsEntity::class,
+        ProfileEntity::class,
         PendingActionEntity::class,
         PostEntity::class,
         InteractionEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 abstract class FluxDatabase : RoomDatabase() {

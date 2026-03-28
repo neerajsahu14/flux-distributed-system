@@ -39,7 +39,8 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onPostClick: (Long) -> Unit = {},
-    onNavigateToConnections: (Long, Int) -> Unit
+    onNavigateToConnections: (Long, Int) -> Unit,
+    onEditProfileClick: () -> Unit = {}
 ) {
     val state = viewModel.state.value
 
@@ -85,8 +86,10 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 ProfileActions(
+                    isCurrentUser = state.isCurrentUser,
                     isFollowing = profile.isFollowing,
-                    onFollowClick = { viewModel.toggleFollow(userId) }
+                    onFollowClick = { viewModel.toggleFollow(userId) },
+                    onEditClick = onEditProfileClick
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -172,14 +175,19 @@ fun FluxHeader(username: String, onBackClick: () -> Unit) {
 }
 
 @Composable
-fun ProfileActions(isFollowing: Boolean, onFollowClick: () -> Unit) {
+fun ProfileActions(
+    isCurrentUser: Boolean,
+    isFollowing: Boolean,
+    onFollowClick: () -> Unit,
+    onEditClick: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Button(
-            onClick = onFollowClick,
+            onClick = if (isCurrentUser) onEditClick else onFollowClick,
             modifier = Modifier
                 .fillMaxWidth(0.6f)
                 .height(48.dp),
@@ -191,7 +199,9 @@ fun ProfileActions(isFollowing: Boolean, onFollowClick: () -> Unit) {
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        brush = if (isFollowing) {
+                        brush = if (isCurrentUser) {
+                            Brush.horizontalGradient(colors = listOf(Color(0xFF475569), Color(0xFF64748B)))
+                        } else if (isFollowing) {
                             Brush.horizontalGradient(colors = listOf(Color(0xFF1E293B), Color(0xFF334155)))
                         } else {
                             Brush.horizontalGradient(colors = listOf(FluxCyan, Color(0xFF32F0FF)))
@@ -200,8 +210,8 @@ fun ProfileActions(isFollowing: Boolean, onFollowClick: () -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (isFollowing) "Following" else "Follow",
-                    color = if (isFollowing) Color.White else Color.Black,
+                    text = if (isCurrentUser) "Edit Profile" else if (isFollowing) "Following" else "Follow",
+                    color = if (isCurrentUser || isFollowing) Color.White else Color.Black,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )

@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
 import com.neerajsahu.flux.androidclient.core.utils.AppResult
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
 import com.neerajsahu.flux.androidclient.feature.feed.domain.repository.FeedRepository
@@ -11,6 +12,7 @@ import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.Profi
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.RelationshipUser
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.repository.RelationshipRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -24,43 +26,59 @@ data class ProfileState(
     val following: List<RelationshipUser> = emptyList(),
     val posts: List<Post> = emptyList(),
     val isPostsLoading: Boolean = false,
+    val isCurrentUser: Boolean = false,
+    val currentUserId: Long = 0L,
     val error: String? = null
 )
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repository: RelationshipRepository,
-    private val feedRepository: FeedRepository
+    private val feedRepository: FeedRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _state = mutableStateOf(ProfileState())
     val state: State<ProfileState> = _state
 
-    fun getProfile(userId: Long) {
-        _state.value = _state.value.copy(
-            isLoading = _state.value.profile == null,
-            error = null
-        )
+    init {
+        viewModelScope.launch {
+            val userId = tokenManager.getUserId().first() ?: 0L
+            _state.value = _state.value.copy(currentUserId = userId)
+        }
+    }
 
-        repository.getProfileStats(userId).onEach { result ->
-            when (result) {
-                is AppResult.Success -> {
-                    _state.value = _state.value.copy(
-                        profile = result.data,
-                        isLoading = false,
-                        error = null
-                    )
+    fun getProfile(userId: Long) {
+        viewModelScope.launch {
+            val currentUserId = tokenManager.getUserId().first() ?: 0L
+            val targetUserId = if (userId == 0L) currentUserId else userId
+            
+            _state.value = _state.value.copy(
+                isLoading = _state.value.profile == null,
+                isCurrentUser = targetUserId == currentUserId,
+                error = null
+            )
+
+            repository.getProfileStats(targetUserId).onEach { result ->
+                when (result) {
+                    is AppResult.Success -> {
+                        _state.value = _state.value.copy(
+                            profile = result.data,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
+                    is AppResult.Error -> {
+                        _state.value = _state.value.copy(
+                            error = result.message,
+                            isLoading = false
+                        )
+                    }
                 }
-                is AppResult.Error -> {
-                    _state.value = _state.value.copy(
-                        error = result.message,
-                        isLoading = false
-                    )
-                }
-            }
-        }.launchIn(viewModelScope)
-        
-        getUserPosts(userId)
+            }.launchIn(viewModelScope)
+            
+            getUserPosts(targetUserId)
+        }
     }
 
     private fun getUserPosts(userId: Long) {
@@ -84,9 +102,9 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun getFollowers(userId: Long) {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
-            when (val result = repository.getFollowers(userId, 0, 100)) {
+        _state.value = _state.value.copy(isLoading = true)
+        repository.getFollowers(userId, 0, 100).onEach { result ->
+            when (result) {
                 is AppResult.Success -> {
                     _state.value = _state.value.copy(
                         followers = result.data,
@@ -100,13 +118,13 @@ class ProfileViewModel @Inject constructor(
                     )
                 }
             }
-        }
+        }.launchIn(viewModelScope)
     }
 
     fun getFollowing(userId: Long) {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
-            when (val result = repository.getFollowing(userId, 0, 100)) {
+        _state.value = _state.value.copy(isLoading = true)
+        repository.getFollowing(userId, 0, 100).onEach { result ->
+            when (result) {
                 is AppResult.Success -> {
                     _state.value = _state.value.copy(
                         following = result.data,
@@ -120,7 +138,7 @@ class ProfileViewModel @Inject constructor(
                     )
                 }
             }
-        }
+        }.launchIn(viewModelScope)
     }
 
     fun toggleFollow(targetUserId: Long) {

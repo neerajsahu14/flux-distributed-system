@@ -2,6 +2,7 @@ package com.neerajsahu.flux.androidclient.feature.relationship.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
 import com.neerajsahu.flux.androidclient.core.utils.AppResult
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.RelationshipUser
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.repository.RelationshipRepository
@@ -16,12 +17,14 @@ data class ExploreUiState(
     val searchQuery: String = "",
     val searchResults: List<RelationshipUser> = emptyList(),
     val isSearching: Boolean = false,
+    val currentUserId: Long = 0L,
     val error: String? = null
 )
 
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
-    private val repository: RelationshipRepository
+    private val repository: RelationshipRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ExploreUiState())
@@ -30,6 +33,10 @@ class ExploreViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
 
     init {
+        viewModelScope.launch {
+            val userId = tokenManager.getUserId().first() ?: 0L
+            _state.update { it.copy(currentUserId = userId) }
+        }
         setupSearchDebounce()
     }
 
@@ -55,8 +62,8 @@ class ExploreViewModel @Inject constructor(
 
     private fun performSearch(query: String) {
         _state.update { it.copy(isSearching = true, error = null) }
-        viewModelScope.launch {
-            when (val result = repository.searchUsers(query, 0, 50)) {
+        repository.searchUsers(query, 0, 50).onEach { result ->
+            when (result) {
                 is AppResult.Success -> {
                     _state.update { it.copy(searchResults = result.data, isSearching = false) }
                 }
@@ -64,7 +71,7 @@ class ExploreViewModel @Inject constructor(
                     _state.update { it.copy(error = result.message, isSearching = false) }
                 }
             }
-        }
+        }.launchIn(viewModelScope)
     }
 
     fun toggleFollow(userId: Long) {
