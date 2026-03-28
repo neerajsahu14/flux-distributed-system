@@ -37,6 +37,7 @@ import com.neerajsahu.flux.androidclient.feature.feed.presentation.CreatePostScr
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.FeedScreen
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.PostDetailScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ConnectionScreen
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ExploreScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ProfileScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -233,9 +234,16 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
                                         Route.Explore -> NavEntry(Route.Explore) {
-                                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                                Text("Explore Screen", color = Color.White)
-                                            }
+                                            ExploreScreen(
+                                                onProfileClick = { clickedUserId ->
+                                                    if (currentUserId != null && clickedUserId == currentUserId) {
+                                                        backStack.clear()
+                                                        backStack.add(Route.Profile)
+                                                    } else {
+                                                        backStack.add(Route.UserProfile(clickedUserId))
+                                                    }
+                                                }
+                                            )
                                         }
                                         Route.Notifications -> NavEntry(Route.Notifications) {
                                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

@@ -14,4 +14,6 @@ interface RelationshipRepository {
     
     fun getProfileStats(userId: Long): Flow<AppResult<ProfileStats>>
     suspend fun getCurrentUserProfileStats(): AppResult<ProfileStatsResponse>
+    
+    suspend fun searchUsers(query: String, page: Int, size: Int): AppResult<List<RelationshipUser>>
 }

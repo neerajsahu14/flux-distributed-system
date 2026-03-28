@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 data class CreatePostUiState(
     val caption: String = "",
-    val selectedImageUri: String? = null,
+    val selectedMediaUri: String? = null,
     val isSubmitting: Boolean = false,
     val isSuccess: Boolean = false,
     val errorMessage: String? = null
@@ -33,29 +33,51 @@ class CreatePostViewModel @Inject constructor(
         _state.update { it.copy(caption = caption, errorMessage = null) }
     }
 
-    fun onImageSelected(uri: String?) {
-        _state.update { it.copy(selectedImageUri = uri, errorMessage = null) }
+    fun onMediaSelected(uri: String?) {
+        _state.update { it.copy(selectedMediaUri = uri, errorMessage = null) }
     }
 
-    fun createPost(imagePart: MultipartBody.Part) {
+    fun clearSelectedMedia() {
+        _state.update { it.copy(selectedMediaUri = null, errorMessage = null) }
+    }
+
+    fun createPost(mediaPart: MultipartBody.Part) {
         val current = _state.value
         if (current.isSubmitting) return
 
         viewModelScope.launch {
-            _state.update { it.copy(isSubmitting = true, errorMessage = null) }
+            _state.update {
+                it.copy(
+                    isSubmitting = true,
+                    errorMessage = null
+                )
+            }
 
-            val result = feedRepository.createPost(
-                image = imagePart,
-                caption = current.caption.ifBlank { null },
-                requestId = UUID.randomUUID().toString()
-            )
-
-            when (result) {
+            when (
+                feedRepository.createPost(
+                    image = mediaPart,
+                    caption = current.caption.ifBlank { null },
+                    requestId = UUID.randomUUID().toString()
+                )
+            ) {
                 is AppResult.Success -> {
-                    _state.update { it.copy(isSubmitting = false, isSuccess = true, errorMessage = null) }
+                    _state.update {
+                        it.copy(
+                            isSubmitting = false,
+                            isSuccess = true,
+                            errorMessage = null
+                        )
+                    }
                 }
+
                 is AppResult.Error -> {
-                    _state.update { it.copy(isSubmitting = false, errorMessage = result.message) }
+                    _state.update {
+                        it.copy(
+                            isSubmitting = false,
+                            errorMessage = "Failed to upload media. Please try again.",
+                            isSuccess = false
+                        )
+                    }
                 }
             }
         }
