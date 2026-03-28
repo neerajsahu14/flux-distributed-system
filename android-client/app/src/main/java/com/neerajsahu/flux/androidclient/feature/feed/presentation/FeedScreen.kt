@@ -8,8 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +32,7 @@ import com.neerajsahu.flux.androidclient.core.ui.components.GlassCard
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxGlassWhite
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxRuby
+import com.neerajsahu.flux.androidclient.feature.interaction.presentation.components.InteractionBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,7 +138,11 @@ fun FeedScreen(
                                         post = post,
                                         isLeftAligned = isLeftAligned,
                                         onProfileClick = onProfileClick,
-                                        onPostClick = onPostClick
+                                        onPostClick = onPostClick,
+                                        isInteractionInFlight = state.interactionInFlightPostIds.contains(post.id),
+                                        onLikeClick = { viewModel.onLikeClick(post.id) },
+                                        onBookmarkClick = { viewModel.onBookmarkClick(post.id) },
+                                        onShareClick = { viewModel.onShareClick(post.id) }
                                     )
                                 }
                             }
@@ -233,7 +236,11 @@ fun FluxFeedPostCard(
     post: com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post,
     isLeftAligned: Boolean,
     onProfileClick: (Long) -> Unit,
-    onPostClick: (Long) -> Unit
+    onPostClick: (Long) -> Unit,
+    isInteractionInFlight: Boolean,
+    onLikeClick: () -> Unit,
+    onBookmarkClick: () -> Unit,
+    onShareClick: () -> Unit
 ) {
     // Glassmorphic panel with asymmetric sizing and positioning
     GlassCard(
@@ -362,17 +369,16 @@ fun FluxFeedPostCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "❤️ ${post.likeCount}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = FluxRuby
-                )
-            }
+            InteractionBar(
+                isLiked = post.isLiked,
+                isBookmarked = post.isBookmarked,
+                likeCount = post.likeCount,
+                shareCount = post.shareCount,
+                isInteractionInFlight = isInteractionInFlight,
+                onLikeClick = onLikeClick,
+                onBookmarkClick = onBookmarkClick,
+                onShareClick = onShareClick
+            )
         }
     }
 }
