@@ -33,6 +33,7 @@ import com.neerajsahu.flux.androidclient.core.navigation.Route
 import com.neerajsahu.flux.androidclient.core.ui.theme.*
 import com.neerajsahu.flux.androidclient.feature.auth.presentation.LoginScreen
 import com.neerajsahu.flux.androidclient.feature.auth.presentation.SignUpScreen
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.CreatePostScreen
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.FeedScreen
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.PostDetailScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ConnectionScreen
@@ -162,6 +163,9 @@ class MainActivity : ComponentActivity() {
                                                             backStack.removeAt(backStack.size - 1)
                                                         }
                                                     },
+                                                    onPostClick = { postId ->
+                                                        backStack.add(Route.PostDetail(postId))
+                                                    },
                                                     onNavigateToConnections = { userId, initialTab ->
                                                         backStack.add(Route.Connections(userId, initialTab))
                                                     }
@@ -182,6 +186,9 @@ class MainActivity : ComponentActivity() {
                                                     if (backStack.size > 1) {
                                                         backStack.removeAt(backStack.size - 1)
                                                     }
+                                                },
+                                                onPostClick = { postId ->
+                                                    backStack.add(Route.PostDetail(postId))
                                                 },
                                                 onNavigateToConnections = { userId, initialTab ->
                                                     backStack.add(Route.Connections(userId, initialTab))
@@ -236,9 +243,17 @@ class MainActivity : ComponentActivity() {
                                             }
                                         }
                                         Route.CreatePost -> NavEntry(Route.CreatePost) {
-                                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                                Text("Create Post Screen", color = Color.White)
-                                            }
+                                            CreatePostScreen(
+                                                onBackClick = {
+                                                    if (backStack.size > 1) {
+                                                        backStack.removeAt(backStack.size - 1)
+                                                    }
+                                                },
+                                                onPostCreated = {
+                                                    backStack.clear()
+                                                    backStack.add(Route.NewsFeed)
+                                                }
+                                            )
                                         }
                                         Route.Main -> NavEntry(Route.Main) {
                                             Box(modifier = Modifier.fillMaxSize()) {
@@ -264,7 +279,7 @@ fun FluxBottomDock(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 24.dp)
+            .padding(horizontal = 24.dp)
             .height(72.dp)
             .shadow(elevation = 16.dp, shape = RoundedCornerShape(36.dp), spotColor = FluxCyan.copy(alpha = 0.5f))
             .background(
