@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <style name="Theme.AndroidClient.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/flux_background_dark</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.AndroidClient</item>
+    </style>
+
     <style name="Theme.AndroidClient" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

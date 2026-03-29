@@ -83,7 +83,9 @@ fun FluxLogo(
         Image(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "Flux Logo",
-            modifier = Modifier.size(width = iconSize * 1.5f, height = iconSize),
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .height(iconSize),
             contentScale = ContentScale.Fit
         )
     }

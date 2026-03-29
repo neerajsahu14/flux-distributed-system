@@ -51,7 +51,7 @@ fun EditProfileScreen(
                 // For this implementation, we'll simulate the "cropped" result.
                 val file = context.saveUriToFile(it)
                 if (file != null) {
-                    viewModel.updateProfileImage(file)
+                    viewModel.onImageSelected(it, file)
                 }
             }
         }
@@ -94,7 +94,7 @@ fun EditProfileScreen(
                 if (state.isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = FluxCyan)
                 } else {
-                    TextButton(onClick = viewModel::updateBio) {
+                    TextButton(onClick = viewModel::updateProfile) {
                         Text("Save", color = FluxCyan, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -119,8 +119,9 @@ fun EditProfileScreen(
                         },
                     contentAlignment = Alignment.Center
                 ) {
+                    val displayImage = state.pendingImageUri ?: state.user?.profilePicUrl
                     SubcomposeAsyncImage(
-                        model = state.user?.profilePicUrl,
+                        model = displayImage,
                         contentDescription = "Profile Picture",
                         modifier = Modifier
                             .fillMaxSize()

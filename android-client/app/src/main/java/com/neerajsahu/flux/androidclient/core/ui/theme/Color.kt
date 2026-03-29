@@ -19,10 +19,10 @@ val FluxRuby = Color(0xFFE0115F)
 val FluxCyan = Color(0xFF00D4FF)
 
 // Backgrounds & Surfaces (Deep Sapphire/Charcoal)
-val FluxBackgroundDark = Color(0xFF09101C)
+val FluxBackgroundDark = Color(0xFF000000)
 val FluxOnBackgroundDark = Color(0xFFE2E8F0)
 
-val FluxSurfaceDark = Color(0xFF121A2F)
+val FluxSurfaceDark = Color(0xFF000000)
 val FluxOnSurfaceDark = Color(0xFFE2E8F0)
 
 val FluxSurfaceVariantDark = Color(0xFF1E293B)
