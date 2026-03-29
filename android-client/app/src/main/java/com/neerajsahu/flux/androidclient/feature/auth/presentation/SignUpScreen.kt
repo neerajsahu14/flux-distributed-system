@@ -31,7 +31,7 @@ fun SignUpScreen(
     onSignUpSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
-    val state = viewModel.state.value
+    val state = viewModel.signupState.value
     if (state.isSuccess) {
         onSignUpSuccess()
     }
@@ -40,14 +40,14 @@ fun SignUpScreen(
         state = state,
         username = viewModel.username.value,
         fullName = viewModel.fullName.value,
-        email = viewModel.email.value,
-        password = viewModel.password.value,
+        email = viewModel.signupEmail.value,
+        password = viewModel.signupPassword.value,
         confirmPassword = viewModel.confirmPassword.value,
         bio = viewModel.bio.value,
         onUsernameChange = viewModel::onUsernameChange,
         onFullNameChange = viewModel::onFullNameChange,
-        onEmailChange = viewModel::onEmailChange,
-        onPasswordChange = viewModel::onPasswordChange,
+        onEmailChange = viewModel::onSignupEmailChange,
+        onPasswordChange = viewModel::onSignupPasswordChange,
         onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
         onBioChange = viewModel::onBioChange,
         onSignUpClick = viewModel::signup,

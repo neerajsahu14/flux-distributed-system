@@ -63,8 +63,12 @@ class JwtAuthFilter(
                     SecurityContextHolder.getContext().authentication = authToken
                 }
             }
+        } catch (e: io.jsonwebtoken.JwtException) {
+            println("JWT Invalid Error: ${e.message}")
+            SecurityContextHolder.clearContext()
         } catch (e: Exception) {
-            println("JWT Error: ${e.message}")
+            println("Other Error during Auth (DB/Connection?): ${e.message}")
+            e.printStackTrace() // To see what exactly is crashing (e.g. DB connection)
             SecurityContextHolder.clearContext()
         }
 

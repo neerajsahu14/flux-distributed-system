@@ -357,23 +357,54 @@ fun PostsSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        Text(
-            text = "POSTS",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color.White,
-            letterSpacing = 2.sp
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(18.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(Brush.verticalGradient(listOf(FluxCyan, Color(0xFFE040FB))))
+            )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Text(
+                text = "POSTS",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                letterSpacing = 2.sp
+            )
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            if (posts.isNotEmpty()) {
+                Text(
+                    text = "${posts.size}",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         
         if (isLoading && posts.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp),
+                    .height(240.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(24.dp))
+                    .background(Color.White.copy(alpha = 0.02f)),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = FluxCyan)
@@ -382,12 +413,34 @@ fun PostsSection(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White.copy(alpha = 0.05f)),
+                    .height(240.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(24.dp))
+                    .background(Color.White.copy(alpha = 0.02f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "No posts yet", color = Color.Gray)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(Color.White.copy(alpha = 0.05f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_person), // using person as fallback since ic_image is missing
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "No posts yet", 
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         } else {
             // Displaying posts in a grid.
@@ -421,8 +474,8 @@ fun PostGridItem(post: Post, modifier: Modifier = Modifier, onClick: () -> Unit)
     Box(
         modifier = modifier
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.05f))
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFF1E293B).copy(alpha = 0.5f))
             .clickable { onClick() }
     ) {
         SubcomposeAsyncImage(
@@ -433,12 +486,37 @@ fun PostGridItem(post: Post, modifier: Modifier = Modifier, onClick: () -> Unit)
             loading = {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(24.dp),
                         color = FluxCyan,
-                        strokeWidth = 1.dp
+                        strokeWidth = 2.dp
+                    )
+                }
+            },
+            error = {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_person), // Fallback
+                        contentDescription = null,
+                        tint = Color.Gray.copy(alpha = 0.3f),
+                        modifier = Modifier.size(32.dp)
                     )
                 }
             }
+        )
+        
+        // Gradient Overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.6f)
+                        )
+                    )
+                )
         )
     }
 }

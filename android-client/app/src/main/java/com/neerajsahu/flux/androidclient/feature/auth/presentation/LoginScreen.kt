@@ -30,7 +30,7 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToSignUp: () -> Unit
 ) {
-    val state = viewModel.state.value
+    val state = viewModel.loginState.value
     if (state.isSuccess) {
         onLoginSuccess()
     }
@@ -65,8 +65,8 @@ fun LoginScreen(
 
         FluxInputField(
             label = "Email",
-            value = viewModel.email.value,
-            onValueChange = viewModel::onEmailChange,
+            value = viewModel.loginEmail.value,
+            onValueChange = viewModel::onLoginEmailChange,
             placeholder = "Enter your email",
             iconResId = R.drawable.ic_person,
             keyboardOptions = KeyboardOptions(
@@ -79,8 +79,8 @@ fun LoginScreen(
 
         FluxInputField(
             label = "Password",
-            value = viewModel.password.value,
-            onValueChange = viewModel::onPasswordChange,
+            value = viewModel.loginPassword.value,
+            onValueChange = viewModel::onLoginPasswordChange,
             placeholder = "••••••••",
             iconResId = R.drawable.ic_lock,
             isPassword = true,
