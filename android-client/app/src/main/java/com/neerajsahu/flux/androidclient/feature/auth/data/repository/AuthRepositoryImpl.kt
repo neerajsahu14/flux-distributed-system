@@ -88,7 +88,7 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val userDto = authApi.updateBio(UpdateBioRequest(bio))
             userDao.insertUser(userDto.toUserEntity())
-            AppResult.Success(userDto.toUser())
+            AppResult.Success(userDto.toUserEntity().toUser())
         } catch (e: HttpException) {
             AppResult.Error(e.response()?.errorBody()?.string() ?: "An unknown error occurred")
         } catch (e: IOException) {
@@ -102,7 +102,7 @@ class AuthRepositoryImpl @Inject constructor(
             val body = MultipartBody.Part.createFormData("file", imageFile.name, requestFile)
             val userDto = authApi.updateProfileImage(body)
             userDao.insertUser(userDto.toUserEntity())
-            AppResult.Success(userDto.toUser())
+            AppResult.Success(userDto.toUserEntity().toUser())
         } catch (e: HttpException) {
             AppResult.Error(e.response()?.errorBody()?.string() ?: "An unknown error occurred")
         } catch (e: IOException) {
