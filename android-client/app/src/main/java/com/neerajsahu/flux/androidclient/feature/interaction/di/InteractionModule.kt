@@ -7,9 +7,11 @@ import com.neerajsahu.flux.androidclient.feature.interaction.data.repository.Int
 import com.neerajsahu.flux.androidclient.feature.interaction.data.repository.RoomInteractionSyncSource
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionRepository
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionSyncSource
+import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import javax.inject.Singleton
@@ -27,11 +29,12 @@ object InteractionModule {
     @Provides
     @Singleton
     fun provideInteractionRepository(
+        @ApplicationContext context: Context,
         interactionApi: InteractionApi,
         interactionDao: InteractionDao,
         postDao: PostDao
     ): InteractionRepository {
-        return InteractionRepositoryImpl(interactionApi, interactionDao, postDao)
+        return InteractionRepositoryImpl(context, interactionApi, interactionDao, postDao)
     }
 
     @Provides
@@ -40,6 +43,3 @@ object InteractionModule {
         return RoomInteractionSyncSource(interactionDao)
     }
 }
-
-
-

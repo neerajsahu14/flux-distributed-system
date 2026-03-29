@@ -7,8 +7,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,67 +58,92 @@ fun ConnectionScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF090E1A))
+            .background(Color(0xFF0F172A))
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Custom Tabs with bottom glow
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .height(48.dp)
-                    .background(Color(0xFF1E293B).copy(alpha = 0.3f), RoundedCornerShape(24.dp))
-                    .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp)),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ConnectionTabItem(
-                    text = "Followers",
-                    isSelected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    modifier = Modifier.weight(1f)
-                )
-                VerticalDivider(color = Color.White.copy(alpha = 0.1f), modifier = Modifier.height(24.dp))
-                ConnectionTabItem(
-                    text = "Following",
-                    isSelected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Search Bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                placeholder = { Text("Search", color = Color.Gray) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
-                shape = RoundedCornerShape(28.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFF1E293B).copy(alpha = 0.3f),
-                    focusedContainerColor = Color(0xFF1E293B).copy(alpha = 0.5f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                    focusedBorderColor = Color(0xFF00D4FF).copy(alpha = 0.5f),
-                    cursorColor = Color(0xFF00D4FF),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
-                ),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (state.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF00D4FF))
+        PullToRefreshBox(
+            isRefreshing = state.isLoading,
+            onRefresh = { 
+                if (selectedTab == 0) {
+                    viewModel.getFollowers(userId, forceRefresh = true)
+                } else {
+                    viewModel.getFollowing(userId, forceRefresh = true)
                 }
-            } else {
+            },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Header Top Bar
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                    Text(
+                        text = "Connections",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+
+                // Header
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .height(48.dp)
+                        .background(Color(0xFF1E293B).copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                        .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp)),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ConnectionTabItem(
+                        text = "Followers",
+                        isSelected = selectedTab == 0,
+                        onClick = { selectedTab = 0 },
+                        modifier = Modifier.weight(1f)
+                    )
+                    VerticalDivider(color = Color.White.copy(alpha = 0.1f), modifier = Modifier.height(24.dp))
+                    ConnectionTabItem(
+                        text = "Following",
+                        isSelected = selectedTab == 1,
+                        onClick = { selectedTab = 1 },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Search Bar
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    placeholder = { Text("Search", color = Color.Gray) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+                    shape = RoundedCornerShape(28.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = Color(0xFF1E293B).copy(alpha = 0.3f),
+                        focusedContainerColor = Color(0xFF1E293B).copy(alpha = 0.5f),
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                        focusedBorderColor = Color(0xFF00D4FF).copy(alpha = 0.5f),
+                        cursorColor = Color(0xFF00D4FF),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    ),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 // Connection List
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -132,7 +159,8 @@ fun ConnectionScreen(
                             user = user,
                             buttonText = buttonText,
                             onButtonClick = { viewModel.toggleFollow(user.id) },
-                            onProfileClick = { onProfileClick(user.id) }
+                            onProfileClick = { onProfileClick(user.id) },
+                            isCurrentUser = user.id == state.currentUserId
                         )
                         
                         HorizontalDivider(

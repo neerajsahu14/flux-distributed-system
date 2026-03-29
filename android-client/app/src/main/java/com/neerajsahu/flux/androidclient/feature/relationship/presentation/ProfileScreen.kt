@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -45,7 +46,7 @@ fun ProfileScreen(
     val state = viewModel.state.value
 
     LaunchedEffect(userId) {
-        viewModel.getProfile(userId)
+        viewModel.getProfile(userId, forceRefresh = false)
     }
 
     Box(
@@ -56,20 +57,11 @@ fun ProfileScreen(
         // Flux Line Background for consistency
         FluxLineBackground(modifier = Modifier.fillMaxSize())
 
-        if (state.isLoading && state.profile == null) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = FluxCyan
-            )
-        } else if (state.error != null && state.profile == null) {
-            Text(
-                text = state.error,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        } else if (state.profile != null) {
-            val profile = state.profile
-            
+        PullToRefreshBox(
+            isRefreshing = state.isLoading || state.isPostsLoading,
+            onRefresh = { viewModel.getProfile(userId, forceRefresh = true) },
+            modifier = Modifier.fillMaxSize()
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -77,51 +69,68 @@ fun ProfileScreen(
                     .padding(bottom = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                FluxHeader(username = profile.username, onBackClick = onBackClick)
+                if (state.isLoading && state.profile == null) {
+                    Box(modifier = Modifier.fillMaxWidth().height(400.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            color = FluxCyan
+                        )
+                    }
+                } else if (state.error != null && state.profile == null) {
+                    Box(modifier = Modifier.fillMaxWidth().height(400.dp), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = state.error,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                } else if (state.profile != null) {
+                    val profile = state.profile
+                    
+                    FluxHeader(username = profile.username, onBackClick = onBackClick)
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                GlowingAvatar(profilePicUrl = profile.profilePicUrl)
+                    GlowingAvatar(profilePicUrl = profile.profilePicUrl)
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                ProfileActions(
-                    isCurrentUser = state.isCurrentUser,
-                    isFollowing = profile.isFollowing,
-                    onFollowClick = { viewModel.toggleFollow(userId) },
-                    onEditClick = onEditProfileClick
-                )
+                    ProfileActions(
+                        isCurrentUser = state.isCurrentUser,
+                        isFollowing = profile.isFollowing,
+                        onFollowClick = { viewModel.toggleFollow(userId) },
+                        onEditClick = onEditProfileClick
+                    )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                profile.bio?.let {
-                    Text(
-                        text = it,
-                        fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center,
-                        lineHeight = 22.sp,
-                        modifier = Modifier.padding(horizontal = 40.dp)
+                    profile.bio?.let {
+                        Text(
+                            text = it,
+                            fontSize = 14.sp,
+                            color = Color.White.copy(alpha = 0.8f),
+                            textAlign = TextAlign.Center,
+                            lineHeight = 22.sp,
+                            modifier = Modifier.padding(horizontal = 40.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    StatsCard(
+                        posts = profile.postCount.toString(),
+                        followers = if (profile.followersCount >= 1000) "${(profile.followersCount / 1000.0)}K" else profile.followersCount.toString(),
+                        following = profile.followingCount.toString(),
+                        onFollowersClick = { onNavigateToConnections(userId, 0) },
+                        onFollowingClick = { onNavigateToConnections(userId, 1) }
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    PostsSection(
+                        posts = state.posts,
+                        isLoading = state.isPostsLoading,
+                        onPostClick = onPostClick
                     )
                 }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                StatsCard(
-                    posts = profile.postCount.toString(),
-                    followers = if (profile.followersCount >= 1000) "${(profile.followersCount / 1000.0)}K" else profile.followersCount.toString(),
-                    following = profile.followingCount.toString(),
-                    onFollowersClick = { onNavigateToConnections(userId, 0) },
-                    onFollowingClick = { onNavigateToConnections(userId, 1) }
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                PostsSection(
-                    posts = state.posts,
-                    isLoading = state.isPostsLoading,
-                    onPostClick = onPostClick
-                )
             }
         }
     }
@@ -132,7 +141,6 @@ fun FluxHeader(username: String, onBackClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .statusBarsPadding()
             .padding(horizontal = 24.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically

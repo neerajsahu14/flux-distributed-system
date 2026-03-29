@@ -16,13 +16,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
@@ -40,6 +47,8 @@ import com.neerajsahu.flux.androidclient.feature.relationship.presentation.Conne
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.EditProfileScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ExploreScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ProfileScreen
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -69,7 +78,12 @@ class MainActivity : ComponentActivity() {
                             CircularProgressIndicator(color = FluxCyan)
                         }
                     } else {
-                        val backStack = remember {
+                        val routeSaver = listSaver<androidx.compose.runtime.snapshots.SnapshotStateList<Route>, String>(
+                            save = { it.map { route -> Json.encodeToString(route) } },
+                            restore = { it.map { json -> Json.decodeFromString<Route>(json) }.toMutableStateList() as androidx.compose.runtime.snapshots.SnapshotStateList<Route> }
+                        )
+
+                        val backStack = rememberSaveable(saver = routeSaver) {
                             mutableStateListOf<Route>(if (isUserLoggedIn == true) Route.NewsFeed else Route.Login)
                         }
 
@@ -305,6 +319,7 @@ fun FluxBottomDock(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
+            .padding(bottom = 8.dp)
             .height(72.dp)
             .shadow(elevation = 16.dp, shape = RoundedCornerShape(36.dp), spotColor = FluxCyan.copy(alpha = 0.5f))
             .background(
@@ -358,6 +373,23 @@ fun DockIcon(
     isCenter: Boolean = false,
     onClick: () -> Unit
 ) {
+    val density = LocalDensity.current
+
+    // 1. Cache the neon glow paint to prevent GC overhead during recomposition
+    val glowPaint = remember(density) {
+        android.graphics.Paint().apply {
+            isAntiAlias = true
+            color = android.graphics.Color.TRANSPARENT
+            // Soft omnidirectional glow: 16dp spread, 60% opacity
+            setShadowLayer(
+                with(density) { 16.dp.toPx() },
+                0f,
+                0f,
+                FluxCyan.copy(alpha = 0.6f).toArgb()
+            )
+        }
+    }
+
     Box(
         modifier = Modifier
             .size(if (isCenter) 56.dp else 48.dp)
@@ -365,30 +397,30 @@ fun DockIcon(
             .clickable(onClick = onClick)
             .then(
                 if (isSelected) {
-                    Modifier.background(
-                        Brush.radialGradient(
-                            colors = listOf(FluxCyan.copy(alpha = 0.15f), Color.Transparent)
+                    Modifier
+                        .drawBehind {
+                            // 2. Draw the custom neon glow exactly behind the center
+                            // Radius is slightly smaller than the box to allow the blur to spread inward & outward
+                            val radius = size.width / 2.5f
+                            drawIntoCanvas { canvas ->
+                                canvas.nativeCanvas.drawCircle(
+                                    center.x,
+                                    center.y,
+                                    radius,
+                                    glowPaint
+                                )
+                            }
+                        }
+                        .background(
+                            Brush.radialGradient(
+                                // 3. Toned down center fill from 0.15f to 0.10f for a glassier look
+                                colors = listOf(FluxCyan.copy(alpha = 0.10f), Color.Transparent)
+                            )
                         )
-                    )
                 } else Modifier
             ),
         contentAlignment = Alignment.Center
     ) {
-        if (isSelected) {
-            // Glowing halo
-            Box(
-                modifier = Modifier
-                    .size(if (isCenter) 40.dp else 32.dp)
-                    .shadow(
-                        elevation = 8.dp,
-                        shape = CircleShape,
-                        clip = false,
-                        spotColor = FluxCyan,
-                        ambientColor = FluxCyan
-                    )
-            )
-        }
-        
         Icon(
             imageVector = icon,
             contentDescription = null,

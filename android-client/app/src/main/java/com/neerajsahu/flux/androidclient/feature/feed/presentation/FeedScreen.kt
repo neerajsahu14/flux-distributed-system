@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,22 +17,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import kotlinx.coroutines.launch
 import com.neerajsahu.flux.androidclient.R
 import com.neerajsahu.flux.androidclient.core.ui.components.FluxLineBackground
 import com.neerajsahu.flux.androidclient.core.ui.components.GlassCard
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxGlassWhite
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxRuby
+import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
 import com.neerajsahu.flux.androidclient.feature.interaction.presentation.components.InteractionBar
 import com.neerajsahu.flux.androidclient.feature.feed.data.mapper.formatFeedDateTime
 
@@ -44,6 +49,8 @@ fun FeedScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         if (state.posts.isEmpty()) {
@@ -94,6 +101,27 @@ fun FeedScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                if (state.newPostsAvailable > 0) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Button(
+                            onClick = {
+                                viewModel.applyNewPosts()
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(0)
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = FluxCyan),
+                            shape = RoundedCornerShape(16.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text("${state.newPostsAvailable} New Posts Available", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
                 when {
                     state.isLoading && state.posts.isEmpty() -> {
                         Box(
@@ -124,43 +152,64 @@ fun FeedScreen(
                         }
                     }
                     else -> {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(24.dp)
+                        PullToRefreshBox(
+                            isRefreshing = state.isRefreshing,
+                            onRefresh = { viewModel.refresh() },
+                            modifier = Modifier.fillMaxSize()
                         ) {
-                            itemsIndexed(state.posts, key = { _, post -> post.id }) { index, post ->
-                                val isLeftAligned = index % 2 == 0
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd
-                                ) {
-                                    FluxFeedPostCard(
-                                        post = post,
-                                        isLeftAligned = isLeftAligned,
-                                        onProfileClick = onProfileClick,
-                                        onPostClick = onPostClick,
-                                        isInteractionInFlight = state.interactionInFlightPostIds.contains(post.id),
-                                        onLikeClick = { viewModel.onLikeClick(post.id) },
-                                        onBookmarkClick = { viewModel.onBookmarkClick(post.id) },
-                                        onShareClick = { viewModel.onShareClick(post.id) }
-                                    )
-                                }
-                            }
-
-                            if (state.isLoadingMore) {
-                                item {
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(bottom = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(24.dp)
+                            ) {
+                                itemsIndexed(state.posts, key = { _, post -> post.id }) { index, post ->
+                                    // Pagination trigger
+                                    if (index == state.posts.lastIndex && state.hasMore) {
+                                        LaunchedEffect(index) {
+                                            viewModel.loadMorePosts()
+                                        }
+                                    }
+                                    
+                                    val isLeftAligned = index % 2 == 0
                                     Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        contentAlignment = Alignment.Center
+                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                                        contentAlignment = if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd
                                     ) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.width(24.dp),
-                                            strokeWidth = 2.dp,
-                                            color = FluxCyan
+                                        FluxFeedPostCard(
+                                            post = post,
+                                            isLeftAligned = isLeftAligned,
+                                            onProfileClick = onProfileClick,
+                                            onPostClick = onPostClick,
+                                            isInteractionInFlight = state.interactionInFlightPostIds.contains(post.id),
+                                            onLikeClick = { viewModel.onLikeClick(post.id) },
+                                            onBookmarkClick = { viewModel.onBookmarkClick(post.id) },
+                                            onShareClick = { viewModel.onShareClick(post.id) }
                                         )
+                                    }
+                                }
+                                
+                                if (state.isLoadingMore) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator(color = FluxCyan, modifier = Modifier.size(32.dp))
+                                        }
+                                    }
+                                } else if (!state.hasMore && state.posts.isNotEmpty()) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = "No more posts at the moment",
+                                                color = Color.Gray,
+                                                fontSize = 14.sp
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -179,22 +228,32 @@ fun FeedTabItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // 1. Cache the Paint object to prevent GC thrashing during draw phase
+    val density = LocalDensity.current
+    val glowPaint = remember(density) {
+        android.graphics.Paint().apply {
+            isAntiAlias = true
+            color = android.graphics.Color.TRANSPARENT
+            // Adjust radius (20dp -> 12dp) and add alpha (0.6f) to soften the core shadow
+            setShadowLayer(
+                with(density) { 12.dp.toPx() },
+                0f,
+                0f,
+                FluxCyan.copy(alpha = 0.6f).toArgb()
+            )
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxHeight()
             .drawBehind {
                 if (isSelected) {
-                    val glowColor = FluxCyan
-                    val paint = android.graphics.Paint().apply {
-                        isAntiAlias = true
-                        color = android.graphics.Color.TRANSPARENT
-                        setShadowLayer(20.dp.toPx(), 0f, 0f, glowColor.toArgb())
-                    }
                     drawIntoCanvas { canvas ->
                         canvas.nativeCanvas.drawRoundRect(
                             0f, 0f, size.width, size.height,
                             24.dp.toPx(), 24.dp.toPx(),
-                            paint
+                            glowPaint
                         )
                     }
                 }
@@ -202,10 +261,11 @@ fun FeedTabItem(
             .background(
                 if (isSelected) {
                     Brush.verticalGradient(
-                        colors = listOf(FluxCyan.copy(alpha = 0.15f), Color.Transparent)
+                        // 2. Reduce surface tint opacity (0.15f -> 0.08f) for subtlety
+                        colors = listOf(FluxCyan.copy(alpha = 0.08f), Color.Transparent)
                     )
                 } else {
-                    Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
+                    SolidColor(Color.Transparent) // Cleaner than an empty linear gradient
                 },
                 RoundedCornerShape(24.dp)
             )

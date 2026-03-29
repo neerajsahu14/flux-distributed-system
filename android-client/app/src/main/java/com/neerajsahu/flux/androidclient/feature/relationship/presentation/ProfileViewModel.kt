@@ -48,13 +48,17 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun getProfile(userId: Long) {
+    fun getProfile(userId: Long, forceRefresh: Boolean = false) {
         viewModelScope.launch {
             val currentUserId = tokenManager.getUserId().first() ?: 0L
             val targetUserId = if (userId == 0L) currentUserId else userId
             
+            if (!forceRefresh && _state.value.profile != null && _state.value.profile?.userId == targetUserId) {
+                return@launch // Already loaded
+            }
+
             _state.value = _state.value.copy(
-                isLoading = _state.value.profile == null,
+                isLoading = _state.value.profile == null || forceRefresh,
                 isCurrentUser = targetUserId == currentUserId,
                 error = null
             )
@@ -77,13 +81,13 @@ class ProfileViewModel @Inject constructor(
                 }
             }.launchIn(viewModelScope)
             
-            getUserPosts(targetUserId)
+            getUserPosts(targetUserId, forceRefresh)
         }
     }
 
-    private fun getUserPosts(userId: Long) {
-        _state.value = _state.value.copy(isPostsLoading = true)
-        feedRepository.getUserFeed(userId, 0, 50).onEach { result ->
+    private fun getUserPosts(userId: Long, forceRefresh: Boolean = false) {
+        _state.value = _state.value.copy(isPostsLoading = _state.value.posts.isEmpty() || forceRefresh)
+        feedRepository.getUserFeed(userId, 0, 50, forceRefresh).onEach { result ->
             when (result) {
                 is AppResult.Success -> {
                     _state.value = _state.value.copy(
@@ -101,7 +105,10 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun getFollowers(userId: Long) {
+    fun getFollowers(userId: Long, forceRefresh: Boolean = false) {
+        if (!forceRefresh && _state.value.profile?.userId == userId && _state.value.followers.isNotEmpty()) {
+            return
+        }
         _state.value = _state.value.copy(isLoading = true)
         repository.getFollowers(userId, 0, 100).onEach { result ->
             when (result) {
@@ -121,7 +128,10 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun getFollowing(userId: Long) {
+    fun getFollowing(userId: Long, forceRefresh: Boolean = false) {
+        if (!forceRefresh && _state.value.profile?.userId == userId && _state.value.following.isNotEmpty()) {
+            return
+        }
         _state.value = _state.value.copy(isLoading = true)
         repository.getFollowing(userId, 0, 100).onEach { result ->
             when (result) {
