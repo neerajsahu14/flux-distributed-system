@@ -1,6 +1,7 @@
 package com.neerajsahu.flux.androidclient.feature.interaction.data.repository
 
 import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.utils.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostDao
 import com.neerajsahu.flux.androidclient.feature.feed.data.remote.dto.toDomain
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
@@ -29,7 +30,8 @@ class InteractionRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val interactionApi: InteractionApi,
     private val interactionDao: InteractionDao,
-    private val postDao: PostDao
+    private val postDao: PostDao,
+    private val errorParser: ErrorParser
 ) : InteractionRepository {
 
     private fun enqueueInteractionWork(postId: Long, actionType: String): AppResult<InteractionActionResult> {
@@ -136,7 +138,7 @@ class InteractionRepositoryImpl @Inject constructor(
 
     private fun Exception.toReadableMessage(): String {
         return when (this) {
-            is HttpException -> response()?.errorBody()?.string() ?: "Server error"
+            is HttpException -> errorParser.parse(response()?.errorBody()?.string())
             is IOException -> "No internet connection"
             else -> message ?: "Unknown error occurred"
         }

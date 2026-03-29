@@ -30,11 +30,12 @@ object InteractionModule {
     @Singleton
     fun provideInteractionRepository(
         @ApplicationContext context: Context,
+        errorParser: com.neerajsahu.flux.androidclient.core.utils.ErrorParser,
         interactionApi: InteractionApi,
         interactionDao: InteractionDao,
         postDao: PostDao
     ): InteractionRepository {
-        return InteractionRepositoryImpl(context, interactionApi, interactionDao, postDao)
+        return InteractionRepositoryImpl(context, interactionApi, interactionDao, postDao, errorParser)
     }
 
     @Provides

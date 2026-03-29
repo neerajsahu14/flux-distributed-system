@@ -1,6 +1,7 @@
 package com.neerajsahu.flux.androidclient.feature.feed.data.repository
 
 import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.utils.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostDao
 import com.neerajsahu.flux.androidclient.feature.feed.data.remote.FeedApi
 import com.neerajsahu.flux.androidclient.feature.feed.data.remote.dto.PostResponseDto
@@ -21,7 +22,8 @@ import javax.inject.Inject
 
 class FeedRepositoryImpl @Inject constructor(
     private val feedApi: FeedApi,
-    private val postDao: PostDao
+    private val postDao: PostDao,
+    private val errorParser: ErrorParser
 ) : FeedRepository {
 
     override fun getGlobalFeed(page: Int, size: Int, forceRefresh: Boolean): Flow<AppResult<List<Post>>> {
@@ -126,7 +128,7 @@ class FeedRepositoryImpl @Inject constructor(
 
     private fun Exception.toReadableMessage(): String {
         return when (this) {
-            is HttpException -> response()?.errorBody()?.string() ?: "Server error"
+            is HttpException -> errorParser.parse(response()?.errorBody()?.string())
             is IOException -> "No internet connection"
             else -> message ?: "Unknown error occurred"
         }
