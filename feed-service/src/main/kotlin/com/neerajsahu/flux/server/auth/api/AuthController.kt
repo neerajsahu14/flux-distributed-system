@@ -1,19 +1,26 @@
 package com.neerajsahu.flux.server.auth.api
 
+import com.neerajsahu.flux.server.auth.domain.model.User
 import com.neerajsahu.flux.server.auth.service.AuthService
 import com.neerajsahu.flux.server.auth.domain.repository.UserRepository
 import com.neerajsahu.flux.server.auth.api.dto.AuthResponse
 import com.neerajsahu.flux.server.auth.api.dto.LoginRequest
 import com.neerajsahu.flux.server.auth.api.dto.RegisterRequest
+import com.neerajsahu.flux.server.auth.api.dto.UpdateBioRequest
 import com.neerajsahu.flux.server.auth.api.dto.UserResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestAttribute
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -33,5 +40,21 @@ class AuthController(
     fun me(@RequestAttribute("userId") userId: Long): ResponseEntity<UserResponse> {
         val user = userRepository.findById(userId).orElseThrow()
         return ResponseEntity.ok(authService.getUserResponse(user))
+    }
+
+    @PatchMapping("/profile/bio")
+    fun updateBio(
+        @AuthenticationPrincipal currentUser: User,
+        @RequestBody req: UpdateBioRequest
+    ): ResponseEntity<UserResponse> {
+        return ResponseEntity.ok(authService.updateBio(currentUser, req.bio))
+    }
+
+    @PutMapping("/profile/image")
+    fun updateProfileImage(
+        @AuthenticationPrincipal currentUser: User,
+        @RequestParam("file") file: MultipartFile
+    ): ResponseEntity<UserResponse> {
+        return ResponseEntity.ok(authService.updateProfileImage(currentUser, file))
     }
 }

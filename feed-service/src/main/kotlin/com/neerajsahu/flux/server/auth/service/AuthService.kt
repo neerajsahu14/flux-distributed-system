@@ -1,5 +1,7 @@
 package com.neerajsahu.flux.server.auth.service
 
+import com.cloudinary.Cloudinary
+import com.cloudinary.Transformation
 import com.neerajsahu.flux.server.auth.api.dto.AuthResponse
 import com.neerajsahu.flux.server.auth.api.dto.LoginRequest
 import com.neerajsahu.flux.server.auth.api.dto.RegisterRequest
@@ -13,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.Date
@@ -22,6 +25,7 @@ class AuthService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val authenticationManager: AuthenticationManager, // Login check ke liye
+    private val cloudinary: Cloudinary,
     @Value("\${jwt.secret:dev-secret-please-change-to-something-very-long-and-secure}") private val jwtSecret: String,
     @Value("\${jwt.expiration:86400}") private val jwtExpirationSeconds: Long,
 ) {
@@ -75,6 +79,38 @@ class AuthService(
             userId = user.id,
             username = user._username
         )
+    }
+
+    fun updateBio(user: User, bio: String): UserResponse {
+        user.bio = bio
+        val updatedUser = userRepository.save(user)
+        return getUserResponse(updatedUser)
+    }
+
+    fun updateProfileImage(user: User, file: MultipartFile): UserResponse {
+        val uploadParams = mapOf(
+            "folder" to "flux-feed/profiles",
+            "resource_type" to "image"
+        )
+
+        val uploadResult = cloudinary.uploader().upload(file.bytes, uploadParams)
+        val publicId = uploadResult["public_id"] as String
+        
+        val thumbnailUrl = cloudinary.url()
+            .transformation(
+                Transformation<Transformation<*>>()
+                    .width(200)
+                    .height(200)
+                    .crop("fill")
+                    .gravity("face")
+                    .quality("auto")
+                    .fetchFormat("auto")
+            )
+            .generate(publicId)
+
+        user.profilePicUrl = thumbnailUrl
+        val updatedUser = userRepository.save(user)
+        return getUserResponse(updatedUser)
     }
 
     // Helper method (used in controllers)

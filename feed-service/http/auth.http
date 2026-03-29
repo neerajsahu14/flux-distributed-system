@@ -30,3 +30,24 @@ Content-Type: application/json
 ### Get Current User Profile
 GET http://localhost:8080/api/v1/auth/me
 Authorization: Bearer {{auth_token}}
+
+### Update Bio
+PATCH http://localhost:8080/api/v1/auth/profile/bio
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "bio": "New and updated bio!"
+}
+
+### Update Profile Image (Multipart Form Data example, tricky in HTTP file but added for completeness)
+PUT http://localhost:8080/api/v1/auth/profile/image
+Authorization: Bearer {{auth_token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="profile.jpg"
+Content-Type: image/jpeg
+
+< ./test-image.jpg
+--boundary--

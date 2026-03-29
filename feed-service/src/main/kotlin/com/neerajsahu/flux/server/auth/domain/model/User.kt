@@ -26,10 +26,10 @@ data class User(
     @Column(name = "password_hash", nullable = false)
     val passwordHash: String = "",
 
-    val bio: String? = null,
+    var bio: String? = null,
 
     @Column(name = "profile_pic_url")
-    val profilePicUrl: String? = null,
+    var profilePicUrl: String? = null,
 
     @Column(name = "created_at")
     val createdAt: Instant = Instant.now()
