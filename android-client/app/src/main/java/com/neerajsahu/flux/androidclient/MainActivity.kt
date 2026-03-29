@@ -37,6 +37,7 @@ import com.neerajsahu.flux.androidclient.feature.feed.presentation.CreatePostScr
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.FeedScreen
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.PostDetailScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ConnectionScreen
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.EditProfileScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ExploreScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ProfileScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,7 +62,7 @@ class MainActivity : ComponentActivity() {
                 AndroidClientTheme {
                     val isUserLoggedIn by viewModel.isUserLoggedIn.collectAsState()
                     val currentUserProfile by viewModel.currentUserProfile.collectAsState()
-                    val currentUserId = currentUserProfile?.profile?.id
+                    val currentUserId = currentUserProfile?.userId
 
                     if (isUserLoggedIn == null) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -169,6 +170,9 @@ class MainActivity : ComponentActivity() {
                                                     },
                                                     onNavigateToConnections = { userId, initialTab ->
                                                         backStack.add(Route.Connections(userId, initialTab))
+                                                    },
+                                                    onEditProfileClick = {
+                                                        backStack.add(Route.EditProfile)
                                                     }
                                                 )
                                             } else {
@@ -264,6 +268,15 @@ class MainActivity : ComponentActivity() {
                                                 onPostCreated = {
                                                     backStack.clear()
                                                     backStack.add(Route.NewsFeed)
+                                                }
+                                            )
+                                        }
+                                        Route.EditProfile -> NavEntry(Route.EditProfile) {
+                                            EditProfileScreen(
+                                                onBackClick = {
+                                                    if (backStack.size > 1) {
+                                                        backStack.removeAt(backStack.size - 1)
+                                                    }
                                                 }
                                             )
                                         }

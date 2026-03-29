@@ -4,10 +4,9 @@ import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.AuthRespon
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.LoginRequestDto
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.RegisterRequestDto
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.UserDto
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.POST
+import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.UpdateBioRequest
+import okhttp3.MultipartBody
+import retrofit2.http.*
 
 interface AuthApi {
 
@@ -19,4 +18,11 @@ interface AuthApi {
 
     @GET("api/v1/auth/me")
     suspend fun getProfile(@Header("Authorization") token: String): UserDto
+
+    @PATCH("api/v1/auth/profile/bio")
+    suspend fun updateBio(@Body request: UpdateBioRequest): UserDto
+
+    @Multipart
+    @PUT("api/v1/auth/profile/image")
+    suspend fun updateProfileImage(@Part file: MultipartBody.Part): UserDto
 }

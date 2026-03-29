@@ -6,6 +6,7 @@ import com.neerajsahu.flux.androidclient.feature.auth.data.local.UserDao
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.AuthApi
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.LoginRequestDto
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.RegisterRequestDto
+import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.UpdateBioRequest
 import com.neerajsahu.flux.androidclient.feature.auth.domain.model.User
 import com.neerajsahu.flux.androidclient.feature.auth.domain.repository.AuthRepository
 import com.neerajsahu.flux.androidclient.feature.auth.mapper.toUser
@@ -15,7 +16,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.HttpException
+import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 
@@ -76,6 +81,32 @@ class AuthRepositoryImpl @Inject constructor(
             } else {
                 flowOf(null)
             }
+        }
+    }
+
+    override suspend fun updateBio(bio: String): AppResult<User> {
+        return try {
+            val userDto = authApi.updateBio(UpdateBioRequest(bio))
+            userDao.insertUser(userDto.toUserEntity())
+            AppResult.Success(userDto.toUser())
+        } catch (e: HttpException) {
+            AppResult.Error(e.response()?.errorBody()?.string() ?: "An unknown error occurred")
+        } catch (e: IOException) {
+            AppResult.Error("Couldn't reach server. Check your internet connection.")
+        }
+    }
+
+    override suspend fun updateProfileImage(imageFile: File): AppResult<User> {
+        return try {
+            val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
+            val body = MultipartBody.Part.createFormData("file", imageFile.name, requestFile)
+            val userDto = authApi.updateProfileImage(body)
+            userDao.insertUser(userDto.toUserEntity())
+            AppResult.Success(userDto.toUser())
+        } catch (e: HttpException) {
+            AppResult.Error(e.response()?.errorBody()?.string() ?: "An unknown error occurred")
+        } catch (e: IOException) {
+            AppResult.Error("Couldn't reach server. Check your internet connection.")
         }
     }
 }
