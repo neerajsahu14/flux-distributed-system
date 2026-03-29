@@ -14,10 +14,7 @@ build/
 .springBeans
 .sts4-cache
 .env
-*.properties
-/src/main/resources/application.properties
 !.env.example
-!**/src/main/resources/application-*.properties
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
