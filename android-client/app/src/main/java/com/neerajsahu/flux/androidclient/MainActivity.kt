@@ -55,6 +55,7 @@ import com.neerajsahu.flux.androidclient.feature.relationship.presentation.Profi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import androidx.compose.ui.res.stringResource
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -62,7 +63,14 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        
+        // Keep the splash screen on-screen until we know the login status
+        splashScreen.setKeepOnScreenCondition { 
+            viewModel.isUserLoggedIn.value == null 
+        }
+        
         enableEdgeToEdge()
         
         val imageLoader = ImageLoader.Builder(this)
@@ -87,11 +95,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    if (isUserLoggedIn == null) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = FluxCyan)
-                        }
-                    } else {
+                    if (isUserLoggedIn != null) {
                         val routeSaver = listSaver<androidx.compose.runtime.snapshots.SnapshotStateList<Route>, String>(
                             save = { it.map { route -> Json.encodeToString(route) } },
                             restore = { it.map { json -> Json.decodeFromString<Route>(json) }.toMutableStateList() as androidx.compose.runtime.snapshots.SnapshotStateList<Route> }
