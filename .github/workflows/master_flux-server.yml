@@ -34,8 +34,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/feed-service/build/libs/*.jar'
-
+          path: |
+            ${{ github.workspace }}/feed-service/build/libs/*.jar
+            !${{ github.workspace }}/feed-service/build/libs/*-plain.jar
   deploy:
     runs-on: ubuntu-latest
     needs: build
