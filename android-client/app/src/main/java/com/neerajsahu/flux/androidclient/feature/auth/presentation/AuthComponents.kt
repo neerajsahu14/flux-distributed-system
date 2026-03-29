@@ -11,18 +11,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -37,6 +42,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.neerajsahu.flux.androidclient.R
+import com.neerajsahu.flux.androidclient.core.ui.components.FluxLineBackground
+import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
 
 @Composable
 fun AuthScreenContainer(
@@ -47,32 +54,9 @@ fun AuthScreenContainer(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(FluxBackgroundDark)
     ) {
-        // Background Image with low opacity
-        Image(
-            painter = painterResource(id = R.drawable.auth_background),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            alpha = .5f
-        )
-        
-        // Dark overlay for extra contrast and depth
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Black.copy(alpha = 0.4f),
-                            Color(0xFF26395E).copy(alpha = 0.8f)
-                        )
-                    )
-                )
-        )
-
-        BackgroundNetwork(modifier = Modifier.fillMaxSize())
+        FluxLineBackground(modifier = Modifier.fillMaxSize())
 
         val columnModifier = Modifier
             .fillMaxSize()
@@ -90,48 +74,17 @@ fun AuthScreenContainer(
 @Composable
 fun FluxLogo(
     modifier: Modifier = Modifier,
-    iconSize: Dp = 80.dp
+    iconSize: Dp = 160.dp
 ) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier.size(iconSize),
-            contentAlignment = Alignment.Center
-        ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val strokeWidth = 2.dp.toPx()
-                val color = Color(0xFF38BDF8)
-                
-                drawCircle(
-                    color = color,
-                    radius = size.minDimension / 2.5f,
-                    style = Stroke(width = strokeWidth)
-                )
-                
-                val path1 = Path().apply {
-                    addOval(androidx.compose.ui.geometry.Rect(size.width * 0.2f, 0f, size.width * 0.8f, size.height))
-                }
-                val path2 = Path().apply {
-                    addOval(androidx.compose.ui.geometry.Rect(0f, size.height * 0.2f, size.width, size.height * 0.8f))
-                }
-                
-                drawPath(path1, color, style = Stroke(width = strokeWidth))
-                drawPath(path2, color, style = Stroke(width = strokeWidth))
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = "FLUX",
-            style = TextStyle(
-                color = Color(0xFF38BDF8),
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 4.sp
-            )
+        Image(
+            painter = painterResource(id = R.drawable.logo),
+            contentDescription = "Flux Logo",
+            modifier = Modifier.size(width = iconSize * 1.5f, height = iconSize),
+            contentScale = ContentScale.Fit
         )
     }
 }
@@ -145,8 +98,15 @@ fun FluxInputField(
     iconResId: Int,
     isPassword: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(
+        keyboardType = keyboardType,
+        imeAction = androidx.compose.ui.text.input.ImeAction.Next
+    ),
+    keyboardActions: androidx.compose.foundation.text.KeyboardActions = androidx.compose.foundation.text.KeyboardActions.Default,
     trailingContent: @Composable (() -> Unit)? = null
 ) {
+    var passwordVisible by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -162,9 +122,9 @@ fun FluxInputField(
             )
             trailingContent?.invoke()
         }
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -205,16 +165,18 @@ fun FluxInputField(
                     tint = Color.Gray,
                     modifier = Modifier.size(20.dp)
                 )
-                
+
                 Spacer(modifier = Modifier.width(12.dp))
-                
+
                 BasicTextField(
                     value = value,
                     onValueChange = onValueChange,
                     textStyle = TextStyle(color = Color.White, fontSize = 16.sp),
-                    visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-                    keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+                    keyboardOptions = keyboardOptions,
+                    keyboardActions = keyboardActions,
+                    cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF38BDF8)),
+                    modifier = Modifier.weight(1f),
                     decorationBox = { innerTextField ->
                         if (value.isEmpty()) {
                             Text(
@@ -225,6 +187,18 @@ fun FluxInputField(
                         innerTextField()
                     }
                 )
+                
+                if (isPassword) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        painter = painterResource(id = if (passwordVisible) R.drawable.ic_visibility else R.drawable.ic_visibility_off),
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                        tint = Color.Gray,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable { passwordVisible = !passwordVisible }
+                    )
+                }
             }
         }
     }
@@ -266,32 +240,5 @@ fun FluxButton(
                 )
             )
         }
-    }
-}
-
-@Composable
-fun BackgroundNetwork(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier) {
-        val strokeWidth = 0.5.dp.toPx()
-        val color = Color(0xFF334155).copy(alpha = 0.3f)
-        
-        drawLine(
-            color = color,
-            start = androidx.compose.ui.geometry.Offset(0f, size.height * 0.2f),
-            end = androidx.compose.ui.geometry.Offset(size.width, size.height * 0.4f),
-            strokeWidth = strokeWidth
-        )
-        drawLine(
-            color = color,
-            start = androidx.compose.ui.geometry.Offset(size.width * 0.2f, 0f),
-            end = androidx.compose.ui.geometry.Offset(size.width * 0.8f, size.height),
-            strokeWidth = strokeWidth
-        )
-        drawLine(
-            color = color,
-            start = androidx.compose.ui.geometry.Offset(0f, size.height * 0.7f),
-            end = androidx.compose.ui.geometry.Offset(size.width, size.height * 0.5f),
-            strokeWidth = strokeWidth
-        )
     }
 }

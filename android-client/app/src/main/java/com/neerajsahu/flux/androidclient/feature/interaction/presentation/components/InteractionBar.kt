@@ -1,20 +1,17 @@
 package com.neerajsahu.flux.androidclient.feature.interaction.presentation.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.neerajsahu.flux.androidclient.R
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxRuby
 
@@ -32,49 +29,62 @@ fun InteractionBar(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceAround
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            IconButton(onClick = onLikeClick, enabled = !isInteractionInFlight) {
-                Icon(
-                    imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                    contentDescription = "Like",
-                    tint = if (isLiked) FluxRuby else Color.Gray
-                )
-            }
-            Text(
-                text = likeCount.toString(),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White
-            )
-        }
+        // Like Action
+        InteractionItem(
+            iconResId = if (isLiked) R.drawable.ic_like_filled else R.drawable.ic_like_outline,
+            tint = if (isLiked) FluxRuby else Color.Gray,
+            countText = likeCount.toString(),
+            onClick = onLikeClick,
+            enabled = !isInteractionInFlight
+        )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            IconButton(onClick = onBookmarkClick, enabled = !isInteractionInFlight) {
-                Text(
-                    text = if (isBookmarked) "Saved" else "Save",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isBookmarked) FluxCyan else Color.Gray
-                )
-            }
+        // Share Action
+        InteractionItem(
+            iconResId = R.drawable.ic_share,
+            tint = if (isInteractionInFlight) Color.Gray else Color.White,
+            countText = shareCount?.toString() ?: "0",
+            onClick = onShareClick,
+            enabled = !isInteractionInFlight
+        )
 
-            IconButton(onClick = onShareClick, enabled = !isInteractionInFlight) {
-                Icon(
-                    imageVector = Icons.Filled.Share,
-                    contentDescription = "Share",
-                    tint = if (isInteractionInFlight) Color.Gray else Color.White
-                )
-            }
-
-            if (shareCount != null) {
-                Text(
-                    text = shareCount.toString(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White
-                )
-            }
-        }
+        // Bookmark Action
+        InteractionItem(
+            iconResId = if (isBookmarked) R.drawable.ic_bookmark_filled else R.drawable.ic_bookmark_outline,
+            tint = if (isBookmarked) FluxCyan else Color.Gray,
+            countText = if (isBookmarked) "Saved" else "Save",
+            onClick = onBookmarkClick,
+            enabled = !isInteractionInFlight
+        )
     }
 }
 
-
+@Composable
+fun InteractionItem(
+    iconResId: Int,
+    tint: Color,
+    countText: String,
+    onClick: () -> Unit,
+    enabled: Boolean
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(8.dp)
+    ) {
+        Icon(
+            painter = painterResource(id = iconResId),
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = countText,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray
+        )
+    }
+}

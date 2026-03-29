@@ -18,6 +18,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import com.neerajsahu.flux.androidclient.R
 
 @Composable
@@ -64,7 +68,11 @@ fun LoginScreen(
             value = viewModel.email.value,
             onValueChange = viewModel::onEmailChange,
             placeholder = "Enter your email",
-            iconResId = R.drawable.ic_person
+            iconResId = R.drawable.ic_person,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next
+            )
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -76,6 +84,13 @@ fun LoginScreen(
             placeholder = "••••••••",
             iconResId = R.drawable.ic_lock,
             isPassword = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = { viewModel.login() }
+            ),
             trailingContent = {
                 Text(
                     text = "Forgot Password?",

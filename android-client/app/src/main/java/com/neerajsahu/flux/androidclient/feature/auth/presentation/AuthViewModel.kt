@@ -28,6 +28,9 @@ class AuthViewModel @Inject constructor(
     private val _password = mutableStateOf("")
     val password: State<String> = _password
 
+    private val _confirmPassword = mutableStateOf("")
+    val confirmPassword: State<String> = _confirmPassword
+
     private val _username = mutableStateOf("")
     val username: State<String> = _username
 
@@ -46,6 +49,10 @@ class AuthViewModel @Inject constructor(
 
     fun onPasswordChange(newValue: String) {
         _password.value = newValue
+    }
+
+    fun onConfirmPasswordChange(newValue: String) {
+        _confirmPassword.value = newValue
     }
 
     fun onUsernameChange(newValue: String) {
@@ -76,6 +83,10 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signup() {
+        if (_password.value != _confirmPassword.value) {
+            _state.value = AuthState(error = "Passwords do not match")
+            return
+        }
         if (_password.value.length < 6) {
             _state.value = AuthState(error = "Password must be at least 6 characters")
             return
