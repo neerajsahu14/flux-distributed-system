@@ -49,7 +49,6 @@ fun ExploreScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
                 .padding(horizontal = 24.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -130,7 +129,8 @@ fun ExploreScreen(
                             SearchUserItem(
                                 user = user,
                                 onClick = { onProfileClick(user.id) },
-                                onFollowClick = { viewModel.toggleFollow(user.id) }
+                                onFollowClick = { viewModel.toggleFollow(user.id) },
+                                isCurrentUser = user.id == state.currentUserId
                             )
                         }
                     }
@@ -144,7 +144,8 @@ fun ExploreScreen(
 fun SearchUserItem(
     user: RelationshipUser,
     onClick: () -> Unit,
-    onFollowClick: () -> Unit
+    onFollowClick: () -> Unit,
+    isCurrentUser: Boolean = false
 ) {
     Row(
         modifier = Modifier
@@ -202,21 +203,23 @@ fun SearchUserItem(
         }
 
         // Follow Button
-        Button(
-            onClick = onFollowClick,
-            modifier = Modifier.height(36.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (user.isFollowing) Color.White.copy(alpha = 0.1f) else FluxCyan,
-                contentColor = if (user.isFollowing) Color.White else Color.Black
-            ),
-            shape = RoundedCornerShape(18.dp)
-        ) {
-            Text(
-                text = if (user.isFollowing) "Following" else "Follow",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
+        if (!isCurrentUser) {
+            Button(
+                onClick = onFollowClick,
+                modifier = Modifier.height(36.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (user.isFollowing) Color.White.copy(alpha = 0.1f) else FluxCyan,
+                    contentColor = if (user.isFollowing) Color.White else Color.Black
+                ),
+                shape = RoundedCornerShape(18.dp)
+            ) {
+                Text(
+                    text = if (user.isFollowing) "Following" else "Follow",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

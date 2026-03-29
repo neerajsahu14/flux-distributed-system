@@ -7,9 +7,9 @@ import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
 
 interface FeedRepository {
-    fun getGlobalFeed(page: Int = 0, size: Int = 20): Flow<AppResult<List<Post>>>
-    fun getTimelineFeed(page: Int = 0, size: Int = 20): Flow<AppResult<List<Post>>>
-    fun getUserFeed(userId: Long, page: Int = 0, size: Int = 20): Flow<AppResult<List<Post>>>
+    fun getGlobalFeed(page: Int = 0, size: Int = 20, forceRefresh: Boolean = false): Flow<AppResult<List<Post>>>
+    fun getTimelineFeed(page: Int = 0, size: Int = 20, forceRefresh: Boolean = false): Flow<AppResult<List<Post>>>
+    fun getUserFeed(userId: Long, page: Int = 0, size: Int = 20, forceRefresh: Boolean = false): Flow<AppResult<List<Post>>>
 
     suspend fun getPostDetail(postId: Long): AppResult<PostDetail>
     suspend fun createPost(
@@ -21,4 +21,3 @@ interface FeedRepository {
     suspend fun updatePost(postId: Long, caption: String?): AppResult<Post>
     suspend fun deletePost(postId: Long): AppResult<Unit>
 }
-

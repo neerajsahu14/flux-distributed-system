@@ -30,8 +30,9 @@ object RelationshipModule {
         api: RelationshipApi,
         profileStatsDao: ProfileStatsDao,
         @ApplicationContext context: Context,
-        tokenManager: TokenManager
+        tokenManager: TokenManager,
+        errorParser: com.neerajsahu.flux.androidclient.core.utils.ErrorParser
     ): RelationshipRepository {
-        return RelationshipRepositoryImpl(api, profileStatsDao, context, tokenManager)
+        return RelationshipRepositoryImpl(api, profileStatsDao, errorParser, context, tokenManager)
     }
 }

@@ -36,7 +36,8 @@ fun RelationshipProfileCard(
     buttonText: String,
     onButtonClick: () -> Unit,
     onProfileClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isCurrentUser: Boolean = false
 ) {
     Row(
         modifier = modifier
@@ -117,11 +118,13 @@ fun RelationshipProfileCard(
         }
 
         // Action Button
-        NeonButton(
-            text = buttonText,
-            onClick = onButtonClick,
-            isDark = buttonText == "Following"
-        )
+        if (!isCurrentUser) {
+            NeonButton(
+                text = buttonText,
+                onClick = onButtonClick,
+                isDark = buttonText == "Following"
+            )
+        }
 
         Spacer(modifier = Modifier.width(12.dp))
 

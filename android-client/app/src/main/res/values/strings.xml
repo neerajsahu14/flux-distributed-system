@@ -22,4 +22,9 @@
     <string name="relationships">Relationships</string>
     <string name="events">Events</string>
     <string name="contact">Contact</string>
+    <string name="no_connection">No connection</string>
+    <string name="back_online">Back online</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="an_unknown_error_occurred">An unknown error occurred</string>
+    <string name="an_error_occurred">An error occurred</string>
 </resources>

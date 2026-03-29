@@ -1,6 +1,7 @@
 package com.neerajsahu.flux.androidclient.feature.interaction.data.repository
 
 import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.utils.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostDao
 import com.neerajsahu.flux.androidclient.feature.feed.data.remote.dto.toDomain
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
@@ -10,35 +11,64 @@ import com.neerajsahu.flux.androidclient.feature.interaction.data.remote.dto.Int
 import com.neerajsahu.flux.androidclient.feature.interaction.data.remote.dto.toDomain
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionActionResult
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionRepository
+import com.neerajsahu.flux.androidclient.feature.interaction.workers.InteractionWorker
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import androidx.work.BackoffPolicy
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import retrofit2.HttpException
 import java.io.IOException
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class InteractionRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val interactionApi: InteractionApi,
     private val interactionDao: InteractionDao,
-    private val postDao: PostDao
+    private val postDao: PostDao,
+    private val errorParser: ErrorParser
 ) : InteractionRepository {
 
+    private fun enqueueInteractionWork(postId: Long, actionType: String): AppResult<InteractionActionResult> {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val workRequest = OneTimeWorkRequestBuilder<InteractionWorker>()
+            .setInputData(workDataOf("POST_ID" to postId, "ACTION_TYPE" to actionType))
+            .setConstraints(constraints)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.MINUTES)
+            .build()
+
+        WorkManager.getInstance(context).enqueue(workRequest)
+
+        // Optimistic success, always return success for the UI right away
+        return AppResult.Success(InteractionActionResult(postId, actionType, "Action queued offline"))
+    }
+
     override suspend fun likePost(postId: Long): AppResult<InteractionActionResult> {
-        return request { interactionApi.likePost(postId, InteractionRequestDto(UUID.randomUUID().toString())) }
+        return enqueueInteractionWork(postId, "LIKE")
     }
 
     override suspend fun unlikePost(postId: Long): AppResult<InteractionActionResult> {
-        return request { interactionApi.unlikePost(postId, InteractionRequestDto(UUID.randomUUID().toString())) }
+        return enqueueInteractionWork(postId, "UNLIKE")
     }
 
     override suspend fun bookmarkPost(postId: Long): AppResult<InteractionActionResult> {
-        return request { interactionApi.bookmarkPost(postId, InteractionRequestDto(UUID.randomUUID().toString())) }
+        return enqueueInteractionWork(postId, "BOOKMARK")
     }
 
     override suspend fun unbookmarkPost(postId: Long): AppResult<InteractionActionResult> {
-        return request { interactionApi.unbookmarkPost(postId, InteractionRequestDto(UUID.randomUUID().toString())) }
+        return enqueueInteractionWork(postId, "UNBOOKMARK")
     }
 
     override suspend fun sharePost(postId: Long): AppResult<InteractionActionResult> {
-        return request { interactionApi.sharePost(postId, InteractionRequestDto(UUID.randomUUID().toString())) }
+        return enqueueInteractionWork(postId, "SHARE")
     }
 
     override suspend fun getBookmarkedPosts(page: Int, size: Int): AppResult<List<Post>> {
@@ -108,10 +138,9 @@ class InteractionRepositoryImpl @Inject constructor(
 
     private fun Exception.toReadableMessage(): String {
         return when (this) {
-            is HttpException -> response()?.errorBody()?.string() ?: "Server error"
+            is HttpException -> errorParser.parse(response()?.errorBody()?.string())
             is IOException -> "No internet connection"
             else -> message ?: "Unknown error occurred"
         }
     }
 }
-

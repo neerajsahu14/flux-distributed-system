@@ -7,6 +7,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import com.neerajsahu.flux.androidclient.core.database.FluxDatabase
+import com.neerajsahu.flux.androidclient.core.network.ConnectivityObserver
+import com.neerajsahu.flux.androidclient.core.utils.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.auth.data.local.UserDao
 import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostDao
 import com.neerajsahu.flux.androidclient.feature.interaction.data.local.InteractionDao
@@ -21,6 +23,18 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideErrorParser(@ApplicationContext context: Context): ErrorParser {
+        return ErrorParser(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideConnectivityObserver(@ApplicationContext context: Context): ConnectivityObserver {
+        return ConnectivityObserver(context)
+    }
 
     @Provides
     @Singleton

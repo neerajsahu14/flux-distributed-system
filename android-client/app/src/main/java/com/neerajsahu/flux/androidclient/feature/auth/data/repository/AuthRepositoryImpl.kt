@@ -2,6 +2,7 @@ package com.neerajsahu.flux.androidclient.feature.auth.data.repository
 
 import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
 import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.utils.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.auth.data.local.UserDao
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.AuthApi
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.LoginRequestDto
@@ -27,7 +28,8 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
     private val tokenManager: TokenManager,
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val errorParser: ErrorParser
 ) : AuthRepository {
 
     override suspend fun login(email: String, password: String): AppResult<Unit> {
@@ -38,7 +40,7 @@ class AuthRepositoryImpl @Inject constructor(
             fetchAndStoreProfile()
             AppResult.Success(Unit)
         } catch (e: HttpException) {
-            AppResult.Error(e.response()?.errorBody()?.string() ?: "An unknown error occurred")
+            AppResult.Error(errorParser.parse(e.response()?.errorBody()?.string()))
         } catch (e: IOException) {
             AppResult.Error("Couldn't reach server. Check your internet connection.")
         }
@@ -52,7 +54,7 @@ class AuthRepositoryImpl @Inject constructor(
             fetchAndStoreProfile()
             AppResult.Success(Unit)
         } catch (e: HttpException) {
-            AppResult.Error(e.response()?.errorBody()?.string() ?: "An unknown error occurred")
+            AppResult.Error(errorParser.parse(e.response()?.errorBody()?.string()))
         } catch (e: IOException) {
             AppResult.Error("Couldn't reach server. Check your internet connection.")
         }
@@ -68,7 +70,7 @@ class AuthRepositoryImpl @Inject constructor(
             userDao.insertUser(userDto.toUserEntity())
             AppResult.Success(Unit)
         } catch (e: HttpException) {
-            AppResult.Error(e.response()?.errorBody()?.string() ?: "An unknown error occurred")
+            AppResult.Error(errorParser.parse(e.response()?.errorBody()?.string()))
         } catch (e: IOException) {
             AppResult.Error("Couldn't reach server. Check your internet connection.")
         }
@@ -90,7 +92,7 @@ class AuthRepositoryImpl @Inject constructor(
             userDao.insertUser(userDto.toUserEntity())
             AppResult.Success(userDto.toUserEntity().toUser())
         } catch (e: HttpException) {
-            AppResult.Error(e.response()?.errorBody()?.string() ?: "An unknown error occurred")
+            AppResult.Error(errorParser.parse(e.response()?.errorBody()?.string()))
         } catch (e: IOException) {
             AppResult.Error("Couldn't reach server. Check your internet connection.")
         }
@@ -104,7 +106,7 @@ class AuthRepositoryImpl @Inject constructor(
             userDao.insertUser(userDto.toUserEntity())
             AppResult.Success(userDto.toUserEntity().toUser())
         } catch (e: HttpException) {
-            AppResult.Error(e.response()?.errorBody()?.string() ?: "An unknown error occurred")
+            AppResult.Error(errorParser.parse(e.response()?.errorBody()?.string()))
         } catch (e: IOException) {
             AppResult.Error("Couldn't reach server. Check your internet connection.")
         }

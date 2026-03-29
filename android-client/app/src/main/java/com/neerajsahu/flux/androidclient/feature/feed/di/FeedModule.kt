@@ -25,9 +25,10 @@ object FeedModule {
     @Singleton
     fun provideFeedRepository(
         feedApi: FeedApi,
-        postDao: PostDao
+        postDao: PostDao,
+        errorParser: com.neerajsahu.flux.androidclient.core.utils.ErrorParser
     ): FeedRepository {
-        return FeedRepositoryImpl(feedApi, postDao)
+        return FeedRepositoryImpl(feedApi, postDao, errorParser)
     }
 }
 

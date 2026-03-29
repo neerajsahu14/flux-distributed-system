@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.*
 import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
 import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.utils.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.PendingActionEntity
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsDao
 import com.neerajsahu.flux.androidclient.feature.relationship.data.remote.RelationshipApi
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class RelationshipRepositoryImpl @Inject constructor(
     private val api: RelationshipApi,
     private val profileStatsDao: ProfileStatsDao,
+    private val errorParser: ErrorParser,
     private val context: Context,
     private val tokenManager: TokenManager
 ) : RelationshipRepository {
@@ -130,7 +132,7 @@ class RelationshipRepositoryImpl @Inject constructor(
             emit(AppResult.Success(remoteStats.toProfileStats()))
         } catch (e: HttpException) {
             if (cached == null) {
-                emit(AppResult.Error(e.response()?.errorBody()?.string() ?: "Unknown error"))
+                emit(AppResult.Error(errorParser.parse(e.response()?.errorBody()?.string())))
             }
         } catch (e: IOException) {
             if (cached == null) {

@@ -112,7 +112,6 @@ fun DetailHeader(onBackClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .statusBarsPadding()
             .height(64.dp)
             .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center

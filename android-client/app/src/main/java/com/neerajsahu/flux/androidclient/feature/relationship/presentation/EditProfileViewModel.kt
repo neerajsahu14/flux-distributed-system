@@ -14,6 +14,8 @@ import javax.inject.Inject
 data class EditProfileState(
     val user: User? = null,
     val bio: String = "",
+    val pendingImageUri: android.net.Uri? = null,
+    val pendingImageFile: File? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val error: String? = null
@@ -37,30 +39,41 @@ class EditProfileViewModel @Inject constructor(
         _state.update { it.copy(bio = newBio) }
     }
 
-    fun updateBio() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
-            when (val result = repository.updateBio(_state.value.bio)) {
-                is AppResult.Success<User> -> {
-                    _state.update { it.copy(isLoading = false, isSuccess = true) }
-                }
-                is AppResult.Error -> {
-                    _state.update { it.copy(isLoading = false, error = result.message) }
-                }
-            }
-        }
+    fun onImageSelected(uri: android.net.Uri, file: File) {
+        _state.update { it.copy(pendingImageUri = uri, pendingImageFile = file) }
     }
 
-    fun updateProfileImage(imageFile: File) {
+    fun updateProfile() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-            when (val result = repository.updateProfileImage(imageFile)) {
-                is AppResult.Success<User> -> {
-                    _state.update { it.copy(isLoading = false, isSuccess = true) }
+            
+            var hasError = false
+
+            // Update Image if selected
+            if (_state.value.pendingImageFile != null) {
+                when (val result = repository.updateProfileImage(_state.value.pendingImageFile!!)) {
+                    is AppResult.Error -> {
+                        _state.update { it.copy(error = result.message) }
+                        hasError = true
+                    }
+                    is AppResult.Success -> {
+                        // Success handled below
+                    }
                 }
-                is AppResult.Error -> {
-                    _state.update { it.copy(isLoading = false, error = result.message) }
+            }
+
+            // Update Bio
+            if (!hasError) {
+                when (val result = repository.updateBio(_state.value.bio)) {
+                    is AppResult.Success<User> -> {
+                        _state.update { it.copy(isLoading = false, isSuccess = true) }
+                    }
+                    is AppResult.Error -> {
+                        _state.update { it.copy(isLoading = false, error = result.message) }
+                    }
                 }
+            } else {
+                _state.update { it.copy(isLoading = false) }
             }
         }
     }

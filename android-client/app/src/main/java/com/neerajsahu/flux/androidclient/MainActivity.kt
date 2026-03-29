@@ -6,6 +6,11 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,13 +21,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
@@ -40,6 +52,10 @@ import com.neerajsahu.flux.androidclient.feature.relationship.presentation.Conne
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.EditProfileScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ExploreScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ProfileScreen
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import androidx.compose.ui.res.stringResource
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -47,7 +63,14 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        
+        // Keep the splash screen on-screen until we know the login status
+        splashScreen.setKeepOnScreenCondition { 
+            viewModel.isUserLoggedIn.value == null 
+        }
+        
         enableEdgeToEdge()
         
         val imageLoader = ImageLoader.Builder(this)
@@ -62,14 +85,23 @@ class MainActivity : ComponentActivity() {
                 AndroidClientTheme {
                     val isUserLoggedIn by viewModel.isUserLoggedIn.collectAsState()
                     val currentUserProfile by viewModel.currentUserProfile.collectAsState()
+                    val isConnected by viewModel.isConnected.collectAsState(initial = true)
                     val currentUserId = currentUserProfile?.userId
+                    var wasDisconnected by remember { mutableStateOf(false) }
 
-                    if (isUserLoggedIn == null) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = FluxCyan)
+                    LaunchedEffect(isConnected) {
+                        if (!isConnected) {
+                            wasDisconnected = true
                         }
-                    } else {
-                        val backStack = remember {
+                    }
+
+                    if (isUserLoggedIn != null) {
+                        val routeSaver = listSaver<androidx.compose.runtime.snapshots.SnapshotStateList<Route>, String>(
+                            save = { it.map { route -> Json.encodeToString(route) } },
+                            restore = { it.map { json -> Json.decodeFromString<Route>(json) }.toMutableStateList() as androidx.compose.runtime.snapshots.SnapshotStateList<Route> }
+                        )
+
+                        val backStack = rememberSaveable(saver = routeSaver) {
                             mutableStateListOf<Route>(if (isUserLoggedIn == true) Route.NewsFeed else Route.Login)
                         }
 
@@ -109,57 +141,85 @@ class MainActivity : ComponentActivity() {
                             },
                             containerColor = FluxBackgroundDark
                         ) { innerPadding ->
-                            NavDisplay(
-                                backStack = backStack,
-                                modifier = Modifier.padding(innerPadding),
-                                onBack = {
-                                    if (backStack.size > 1) {
-                                        backStack.removeAt(backStack.size - 1)
-                                    }
-                                },
-                                entryProvider = { route ->
-                                    when (route) {
-                                        Route.Login -> NavEntry(Route.Login) {
-                                            LoginScreen(
-                                                onLoginSuccess = {
-                                                    backStack.clear()
-                                                    backStack.add(Route.NewsFeed)
-                                                },
-                                                onNavigateToSignUp = {
-                                                    backStack.add(Route.SignUp)
-                                                }
-                                            )
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                NavDisplay(
+                                    backStack = backStack,
+                                    modifier = Modifier.padding(innerPadding).fillMaxSize(),
+                                    onBack = {
+                                        if (backStack.size > 1) {
+                                            backStack.removeAt(backStack.size - 1)
                                         }
-                                        Route.SignUp -> NavEntry(Route.SignUp) {
-                                            SignUpScreen(
-                                                onSignUpSuccess = {
-                                                    backStack.clear()
-                                                    backStack.add(Route.NewsFeed)
-                                                },
-                                                onNavigateToLogin = {
-                                                    backStack.removeAt(backStack.size - 1)
-                                                }
-                                            )
-                                        }
-                                        Route.NewsFeed -> NavEntry(Route.NewsFeed) {
-                                            FeedScreen(
-                                                onProfileClick = { clickedUserId ->
-                                                    if (currentUserId != null && clickedUserId == currentUserId) {
+                                    },
+                                    entryProvider = { route ->
+                                        when (route) {
+                                            Route.Login -> NavEntry(Route.Login) {
+                                                LoginScreen(
+                                                    onLoginSuccess = {
                                                         backStack.clear()
-                                                        backStack.add(Route.Profile)
-                                                    } else {
-                                                        backStack.add(Route.UserProfile(clickedUserId))
+                                                        backStack.add(Route.NewsFeed)
+                                                    },
+                                                    onNavigateToSignUp = {
+                                                        backStack.add(Route.SignUp)
                                                     }
-                                                },
-                                                onPostClick = { postId ->
-                                                    backStack.add(Route.PostDetail(postId))
+                                                )
+                                            }
+                                            Route.SignUp -> NavEntry(Route.SignUp) {
+                                                SignUpScreen(
+                                                    onSignUpSuccess = {
+                                                        backStack.clear()
+                                                        backStack.add(Route.NewsFeed)
+                                                    },
+                                                    onNavigateToLogin = {
+                                                        backStack.removeAt(backStack.size - 1)
+                                                    }
+                                                )
+                                            }
+                                            Route.NewsFeed -> NavEntry(Route.NewsFeed) {
+                                                FeedScreen(
+                                                    onProfileClick = { clickedUserId ->
+                                                        if (currentUserId != null && clickedUserId == currentUserId) {
+                                                            backStack.clear()
+                                                            backStack.add(Route.Profile)
+                                                        } else {
+                                                            backStack.add(Route.UserProfile(clickedUserId))
+                                                        }
+                                                    },
+                                                    onPostClick = { postId ->
+                                                        backStack.add(Route.PostDetail(postId))
+                                                    }
+                                                )
+                                            }
+                                            Route.Profile -> NavEntry(Route.Profile) {
+                                                if (currentUserId != null && currentUserId > 0L) {
+                                                    ProfileScreen(
+                                                        userId = currentUserId,
+                                                        onBackClick = {
+                                                            if (backStack.size > 1) {
+                                                                backStack.removeAt(backStack.size - 1)
+                                                            }
+                                                        },
+                                                        onPostClick = { postId ->
+                                                            backStack.add(Route.PostDetail(postId))
+                                                        },
+                                                        onNavigateToConnections = { userId, initialTab ->
+                                                            backStack.add(Route.Connections(userId, initialTab))
+                                                        },
+                                                        onEditProfileClick = {
+                                                            backStack.add(Route.EditProfile)
+                                                        }
+                                                    )
+                                                } else {
+                                                    Box(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        CircularProgressIndicator(color = FluxCyan)
+                                                    }
                                                 }
-                                            )
-                                        }
-                                        Route.Profile -> NavEntry(Route.Profile) {
-                                            if (currentUserId != null && currentUserId > 0L) {
+                                            }
+                                            is Route.UserProfile -> NavEntry(route) {
                                                 ProfileScreen(
-                                                    userId = currentUserId,
+                                                    userId = route.userId,
                                                     onBackClick = {
                                                         if (backStack.size > 1) {
                                                             backStack.removeAt(backStack.size - 1)
@@ -170,124 +230,128 @@ class MainActivity : ComponentActivity() {
                                                     },
                                                     onNavigateToConnections = { userId, initialTab ->
                                                         backStack.add(Route.Connections(userId, initialTab))
-                                                    },
-                                                    onEditProfileClick = {
-                                                        backStack.add(Route.EditProfile)
                                                     }
                                                 )
-                                            } else {
-                                                Box(
-                                                    modifier = Modifier.fillMaxSize(),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    CircularProgressIndicator(color = FluxCyan)
+                                            }
+                                            is Route.Connections -> NavEntry(route) {
+                                                ConnectionScreen(
+                                                    userId = route.userId,
+                                                    initialTab = route.initialTab,
+                                                    onBackClick = {
+                                                        if (backStack.size > 1) {
+                                                            backStack.removeAt(backStack.size - 1)
+                                                        }
+                                                    },
+                                                    onProfileClick = { clickedUserId: Long ->
+                                                        if (currentUserId != null && clickedUserId == currentUserId) {
+                                                            backStack.clear()
+                                                            backStack.add(Route.Profile)
+                                                        } else {
+                                                            backStack.add(Route.UserProfile(clickedUserId))
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                            is Route.PostDetail -> NavEntry(route) {
+                                                PostDetailScreen(
+                                                    postId = route.postId,
+                                                    onBackClick = {
+                                                        if (backStack.size > 1) {
+                                                            backStack.removeAt(backStack.size - 1)
+                                                        }
+                                                    },
+                                                    onProfileClick = { clickedUserId ->
+                                                        if (currentUserId != null && clickedUserId == currentUserId) {
+                                                            backStack.clear()
+                                                            backStack.add(Route.Profile)
+                                                        } else {
+                                                            backStack.add(Route.UserProfile(clickedUserId))
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                            Route.Explore -> NavEntry(Route.Explore) {
+                                                ExploreScreen(
+                                                    onProfileClick = { clickedUserId ->
+                                                        if (currentUserId != null && clickedUserId == currentUserId) {
+                                                            backStack.clear()
+                                                            backStack.add(Route.Profile)
+                                                        } else {
+                                                            backStack.add(Route.UserProfile(clickedUserId))
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                            Route.Notifications -> NavEntry(Route.Notifications) {
+                                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                                    Text("Notifications Screen", color = Color.White)
                                                 }
                                             }
-                                        }
-                                        is Route.UserProfile -> NavEntry(route) {
-                                            ProfileScreen(
-                                                userId = route.userId,
-                                                onBackClick = {
-                                                    if (backStack.size > 1) {
-                                                        backStack.removeAt(backStack.size - 1)
-                                                    }
-                                                },
-                                                onPostClick = { postId ->
-                                                    backStack.add(Route.PostDetail(postId))
-                                                },
-                                                onNavigateToConnections = { userId, initialTab ->
-                                                    backStack.add(Route.Connections(userId, initialTab))
-                                                }
-                                            )
-                                        }
-                                        is Route.Connections -> NavEntry(route) {
-                                            ConnectionScreen(
-                                                userId = route.userId,
-                                                initialTab = route.initialTab,
-                                                onBackClick = {
-                                                    if (backStack.size > 1) {
-                                                        backStack.removeAt(backStack.size - 1)
-                                                    }
-                                                },
-                                                onProfileClick = { clickedUserId: Long ->
-                                                    if (currentUserId != null && clickedUserId == currentUserId) {
-                                                        backStack.clear()
-                                                        backStack.add(Route.Profile)
-                                                    } else {
-                                                        backStack.add(Route.UserProfile(clickedUserId))
-                                                    }
-                                                }
-                                            )
-                                        }
-                                        is Route.PostDetail -> NavEntry(route) {
-                                            PostDetailScreen(
-                                                postId = route.postId,
-                                                onBackClick = {
-                                                    if (backStack.size > 1) {
-                                                        backStack.removeAt(backStack.size - 1)
-                                                    }
-                                                },
-                                                onProfileClick = { clickedUserId ->
-                                                    if (currentUserId != null && clickedUserId == currentUserId) {
-                                                        backStack.clear()
-                                                        backStack.add(Route.Profile)
-                                                    } else {
-                                                        backStack.add(Route.UserProfile(clickedUserId))
-                                                    }
-                                                }
-                                            )
-                                        }
-                                        Route.Explore -> NavEntry(Route.Explore) {
-                                            ExploreScreen(
-                                                onProfileClick = { clickedUserId ->
-                                                    if (currentUserId != null && clickedUserId == currentUserId) {
-                                                        backStack.clear()
-                                                        backStack.add(Route.Profile)
-                                                    } else {
-                                                        backStack.add(Route.UserProfile(clickedUserId))
-                                                    }
-                                                }
-                                            )
-                                        }
-                                        Route.Notifications -> NavEntry(Route.Notifications) {
-                                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                                Text("Notifications Screen", color = Color.White)
-                                            }
-                                        }
-                                        Route.CreatePost -> NavEntry(Route.CreatePost) {
-                                            CreatePostScreen(
-                                                onBackClick = {
-                                                    if (backStack.size > 1) {
-                                                        backStack.removeAt(backStack.size - 1)
-                                                    } else {
-                                                        // If we're at the root of CreatePost tab, go to Feed
+                                            Route.CreatePost -> NavEntry(Route.CreatePost) {
+                                                CreatePostScreen(
+                                                    onBackClick = {
+                                                        if (backStack.size > 1) {
+                                                            backStack.removeAt(backStack.size - 1)
+                                                        } else {
+                                                            // If we're at the root of CreatePost tab, go to Feed
+                                                            backStack.clear()
+                                                            backStack.add(Route.NewsFeed)
+                                                        }
+                                                    },
+                                                    onPostCreated = {
                                                         backStack.clear()
                                                         backStack.add(Route.NewsFeed)
                                                     }
-                                                },
-                                                onPostCreated = {
-                                                    backStack.clear()
-                                                    backStack.add(Route.NewsFeed)
-                                                }
-                                            )
-                                        }
-                                        Route.EditProfile -> NavEntry(Route.EditProfile) {
-                                            EditProfileScreen(
-                                                onBackClick = {
-                                                    if (backStack.size > 1) {
-                                                        backStack.removeAt(backStack.size - 1)
+                                                )
+                                            }
+                                            Route.EditProfile -> NavEntry(Route.EditProfile) {
+                                                EditProfileScreen(
+                                                    onBackClick = {
+                                                        if (backStack.size > 1) {
+                                                            backStack.removeAt(backStack.size - 1)
+                                                        }
                                                     }
+                                                )
+                                            }
+                                            Route.Main -> NavEntry(Route.Main) {
+                                                Box(modifier = Modifier.fillMaxSize()) {
+                                                    Text("Main")
                                                 }
-                                            )
-                                        }
-                                        Route.Main -> NavEntry(Route.Main) {
-                                            Box(modifier = Modifier.fillMaxSize()) {
-                                                Text("Main")
                                             }
                                         }
                                     }
+                                )
+
+                                // Network Status Bar Overlay
+                                AnimatedVisibility(
+                                    visible = !isConnected || (isConnected && wasDisconnected),
+                                    enter = slideInVertically(initialOffsetY = { -it }, animationSpec = tween(500)),
+                                    exit = slideOutVertically(targetOffsetY = { -it }, animationSpec = tween(500)),
+                                    modifier = Modifier
+                                        .align(Alignment.TopCenter)
+                                        .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
+                                ) {
+                                    val bgColor = if (isConnected) Color(0xFF4CAF50) else Color(0xFFE53935)
+                                    val text = if (isConnected) stringResource(R.string.back_online) else stringResource(R.string.no_connection)
+                                    
+                                    LaunchedEffect(isConnected) {
+                                        if (isConnected && wasDisconnected) {
+                                            delay(3000)
+                                            wasDisconnected = false
+                                        }
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(bgColor)
+                                            .padding(8.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(text = text, color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                                    }
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -305,6 +369,7 @@ fun FluxBottomDock(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
+            .padding(bottom = 8.dp)
             .height(72.dp)
             .shadow(elevation = 16.dp, shape = RoundedCornerShape(36.dp), spotColor = FluxCyan.copy(alpha = 0.5f))
             .background(
@@ -358,6 +423,23 @@ fun DockIcon(
     isCenter: Boolean = false,
     onClick: () -> Unit
 ) {
+    val density = LocalDensity.current
+
+    // 1. Cache the neon glow paint to prevent GC overhead during recomposition
+    val glowPaint = remember(density) {
+        android.graphics.Paint().apply {
+            isAntiAlias = true
+            color = android.graphics.Color.TRANSPARENT
+            // Soft omnidirectional glow: 16dp spread, 60% opacity
+            setShadowLayer(
+                with(density) { 16.dp.toPx() },
+                0f,
+                0f,
+                FluxCyan.copy(alpha = 0.6f).toArgb()
+            )
+        }
+    }
+
     Box(
         modifier = Modifier
             .size(if (isCenter) 56.dp else 48.dp)
@@ -365,30 +447,30 @@ fun DockIcon(
             .clickable(onClick = onClick)
             .then(
                 if (isSelected) {
-                    Modifier.background(
-                        Brush.radialGradient(
-                            colors = listOf(FluxCyan.copy(alpha = 0.15f), Color.Transparent)
+                    Modifier
+                        .drawBehind {
+                            // 2. Draw the custom neon glow exactly behind the center
+                            // Radius is slightly smaller than the box to allow the blur to spread inward & outward
+                            val radius = size.width / 2.5f
+                            drawIntoCanvas { canvas ->
+                                canvas.nativeCanvas.drawCircle(
+                                    center.x,
+                                    center.y,
+                                    radius,
+                                    glowPaint
+                                )
+                            }
+                        }
+                        .background(
+                            Brush.radialGradient(
+                                // 3. Toned down center fill from 0.15f to 0.10f for a glassier look
+                                colors = listOf(FluxCyan.copy(alpha = 0.10f), Color.Transparent)
+                            )
                         )
-                    )
                 } else Modifier
             ),
         contentAlignment = Alignment.Center
     ) {
-        if (isSelected) {
-            // Glowing halo
-            Box(
-                modifier = Modifier
-                    .size(if (isCenter) 40.dp else 32.dp)
-                    .shadow(
-                        elevation = 8.dp,
-                        shape = CircleShape,
-                        clip = false,
-                        spotColor = FluxCyan,
-                        ambientColor = FluxCyan
-                    )
-            )
-        }
-        
         Icon(
             imageVector = icon,
             contentDescription = null,

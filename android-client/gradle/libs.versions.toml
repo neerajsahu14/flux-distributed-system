@@ -18,6 +18,7 @@ datastore = "1.2.0"
 ksp = "2.1.10-1.0.29"
 work = "2.10.0"
 hiltWork = "1.2.0"
+splashscreen = "1.0.1"
 
 # --- Navigation 3 & Serialization Specifics ---
 nav3 = "1.0.1" # Verify latest alpha on Google Maven
@@ -34,6 +35,7 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 
 # Compose
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
