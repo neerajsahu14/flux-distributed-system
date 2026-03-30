@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Android Client</string>
+    <string name="app_name">Flux</string>
     <string name="welcome_back">Welcome Back.</string>
     <string name="log_in_to_continue">Log in to continue to Flux</string>
     <string name="username_or_email">Username or Email</string>
