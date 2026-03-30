@@ -17,16 +17,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import com.neerajsahu.flux.androidclient.core.ui.components.shimmerEffect
 import com.neerajsahu.flux.androidclient.R
 import com.neerajsahu.flux.androidclient.core.ui.components.FluxLineBackground
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
@@ -128,6 +127,9 @@ fun EditProfileScreen(
                             .clip(CircleShape)
                             .border(2.dp, FluxCyan, CircleShape),
                         contentScale = ContentScale.Crop,
+                        loading = {
+                            Box(modifier = Modifier.fillMaxSize().shimmerEffect())
+                        },
                         error = {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_person),

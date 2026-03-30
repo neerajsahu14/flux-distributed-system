@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
+import com.neerajsahu.flux.androidclient.core.ui.components.shimmerEffect
 import com.neerajsahu.flux.androidclient.R
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.RelationshipUser
 
@@ -81,13 +81,7 @@ fun RelationshipProfileCard(
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
                 loading = {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = Color(0xFF00D4FF),
-                            strokeWidth = 2.dp
-                        )
-                    }
+                    Box(modifier = Modifier.fillMaxSize().shimmerEffect())
                 },
                 error = {
                     Icon(

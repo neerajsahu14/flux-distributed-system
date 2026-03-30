@@ -30,7 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import com.neerajsahu.flux.androidclient.core.ui.components.shimmerEffect
+import coil.compose.SubcomposeAsyncImage
 import com.neerajsahu.flux.androidclient.core.ui.components.FluxLineBackground
 import com.neerajsahu.flux.androidclient.R
 import com.neerajsahu.flux.androidclient.core.ui.components.GlassCard
@@ -166,11 +167,12 @@ fun PostDetailContent(
                     if (post.authorAvatarUrl.isNullOrEmpty()) {
                         Icon(painter = painterResource(id = R.drawable.ic_person), contentDescription = null, tint = Color.Gray)
                     } else {
-                        AsyncImage(
+                        SubcomposeAsyncImage(
                             model = post.authorAvatarUrl,
                             contentDescription = null, 
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) }
                         )
                     }
                 }
@@ -289,13 +291,14 @@ private fun AttachmentPage(
 
 @Composable
 private fun ImageAttachment(attachment: AttachmentUiState) {
-    AsyncImage(
+    SubcomposeAsyncImage(
         model = attachment.contentUrl,
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(Color.Black),
+        loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) }
     )
 }
 

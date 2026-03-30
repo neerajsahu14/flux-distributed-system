@@ -64,7 +64,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import coil.compose.AsyncImage
+import com.neerajsahu.flux.androidclient.core.ui.components.shimmerEffect
+import coil.compose.SubcomposeAsyncImage
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
 import com.neerajsahu.flux.androidclient.R
 import kotlinx.coroutines.delay
@@ -185,11 +186,12 @@ private fun ImagePreview(uri: Uri, onReplace: () -> Unit) {
                 onClick = onReplace
             )
     ) {
-        AsyncImage(
+        SubcomposeAsyncImage(
             model = uri,
             contentDescription = "Media preview",
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) }
         )
 
         // Subtle top-to-bottom gradient for depth

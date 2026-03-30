@@ -46,7 +46,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.component.MediaPreviewCard

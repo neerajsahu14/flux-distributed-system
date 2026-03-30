@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import com.neerajsahu.flux.androidclient.core.ui.components.shimmerEffect
 import com.neerajsahu.flux.androidclient.R
 import com.neerajsahu.flux.androidclient.core.ui.components.FluxLineBackground
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
@@ -178,7 +179,8 @@ fun SearchUserItem(
                     model = user.profilePicUrl,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) }
                 )
             }
         }

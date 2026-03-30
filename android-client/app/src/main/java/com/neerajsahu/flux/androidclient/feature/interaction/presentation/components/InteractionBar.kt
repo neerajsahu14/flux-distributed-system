@@ -72,7 +72,6 @@ fun InteractionItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(8.dp)
     ) {
         Icon(
             painter = painterResource(id = iconResId),

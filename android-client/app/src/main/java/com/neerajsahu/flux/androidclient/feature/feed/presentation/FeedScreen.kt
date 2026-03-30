@@ -34,9 +34,9 @@ import com.neerajsahu.flux.androidclient.R
 import com.neerajsahu.flux.androidclient.core.ui.components.FluxLineBackground
 import com.neerajsahu.flux.androidclient.core.ui.components.GlassCard
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
-import com.neerajsahu.flux.androidclient.core.ui.theme.FluxGlassWhite
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxRuby
-import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
+import com.neerajsahu.flux.androidclient.core.ui.theme.FluxGlassWhite
+import com.neerajsahu.flux.androidclient.core.ui.components.shimmerEffect
 import com.neerajsahu.flux.androidclient.feature.interaction.presentation.components.InteractionBar
 import com.neerajsahu.flux.androidclient.feature.feed.data.mapper.formatFeedDateTime
 
@@ -342,13 +342,7 @@ fun FluxFeedPostCard(
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
                             loading = {
-                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(20.dp),
-                                        color = FluxCyan,
-                                        strokeWidth = 2.dp
-                                    )
-                                }
+                                Box(modifier = Modifier.fillMaxSize().shimmerEffect())
                             },
                             error = {
                                 Icon(
@@ -399,13 +393,7 @@ fun FluxFeedPostCard(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
                         loading = {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.dp,
-                                    color = FluxCyan
-                                )
-                            }
+                            Box(modifier = Modifier.fillMaxSize().shimmerEffect())
                         },
                         error = {
                             ProfileFallbackNode(profilePicUrl = post.author.profilePicUrl)
@@ -487,13 +475,7 @@ private fun ProfileFallbackNode(profilePicUrl: String?) {
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                         loading = {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    color = Color(0xFF00E5FF),
-                                    strokeWidth = 2.dp
-                                )
-                            }
+                            Box(modifier = Modifier.fillMaxSize().shimmerEffect())
                         },
                         error = {
                             Icon(

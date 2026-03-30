@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import com.neerajsahu.flux.androidclient.core.ui.components.shimmerEffect
 import com.neerajsahu.flux.androidclient.R
 import com.neerajsahu.flux.androidclient.core.ui.components.FluxLineBackground
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
@@ -326,13 +327,7 @@ fun GlowingAvatar(profilePicUrl: String?) {
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
                     loading = {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = FluxCyan,
-                                strokeWidth = 2.dp
-                            )
-                        }
+                        Box(modifier = Modifier.fillMaxSize().shimmerEffect())
                     },
                     error = {
                         Icon(
@@ -484,13 +479,7 @@ fun PostGridItem(post: Post, modifier: Modifier = Modifier, onClick: () -> Unit)
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
             loading = {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = FluxCyan,
-                        strokeWidth = 2.dp
-                    )
-                }
+                Box(modifier = Modifier.fillMaxSize().shimmerEffect())
             },
             error = {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
