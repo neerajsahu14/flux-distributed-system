@@ -5,13 +5,13 @@
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-F2F4F9?style=for-the-badge&logo=spring-boot)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 
-> A full-stack engineering case study demonstrating a scalable, distributed news feed system — native Android client built with Jetpack Compose and a backend engineered with Kotlin + Spring Boot, strictly adhering to Domain-Driven Design (DDD) principles.
+> A full-stack engineering case study directly applying the core architectural principles from [@manuelvicnt](https://github.com/manuelvicnt) **Manuel Vicente Vivo's "Mobile System Design Interview"**. This project demonstrates how to build a scalable, distributed news feed system by architecting around strict mobile constraints—unstable networks, battery preservation, and complex state management.
 
 ---
 
 ## 📸 App Screenshots
 
-> **Cosmic Ambient** design system — Material 3 with custom neomorphic theming
+> **Cosmic Ambient** design system — Material 3 with custom neomorphic & glassmorphic theming
 
 <table>
   <tr>
@@ -43,6 +43,95 @@
   </tr>
 </table>
 
+---
+
+## 📱 Architectural Philosophy: Designing for Mobile Constraints
+
+The entire architecture of Flux is dictated by the mobile system design heuristics outlined in Vivo's foundational literature. Rather than treating the mobile app as a dumb terminal, the client and server are co-designed to handle high-latency environments gracefully.
+
+### 1. The Cache-Then-Network Strategy (SSOT)
+Mobile networks are inherently unreliable. To prevent blocking the UI thread waiting for HTTP responses, Flux utilizes a strict **Single Source of Truth (SSOT)** via Room SQLite. 
+* The UI never observes the network directly. 
+* Network calls update the local database. The Jetpack Compose UI observes the local database via Kotlin `Flow`. This ensures instant cold-starts and seamless offline rendering.
+
+### 2. Unidirectional Data Flow (UDF)
+State mutations are strictly controlled to prevent UI inconsistencies during async network retries. UI components are stateless, pushing intents to ViewModels. ViewModels process these through Repositories, mutating the SSOT, which then emits a new, immutable `StateFlow` back to the UI.
+
+### 3. API Resiliency & Idempotency
+High-frequency mobile actions (like tapping "Follow" or "Like" rapidly in a subway tunnel) cause network retries. The backend Interaction and Relationship modules are engineered with **Idempotent UPSERT logic**, ensuring that client-side OkHttp retries never result in duplicate database records or inflated interaction counts.
+
+### 4. Edge Media Processing & Thread Starvation Prevention
+To respect mobile bandwidth and client-side memory limits, heavy media processing is offloaded to Cloudinary's Edge CDN for on-the-fly thumbnail generation. On the backend, these network I/O calls are explicitly moved outside of the PostgreSQL `@Transactional` boundaries to prevent database connection pool exhaustion during concurrent mobile uploads.
+
+---
+
+## 📐 System Architecture
+
+The system utilizes a Clean Architecture approach on the client to isolate the SSOT, and a Domain-Driven Design (DDD) approach on the backend to separate bounded contexts.
+
+```mermaid
+graph TD
+    %% ── Android Client ──────────────────────────────
+    subgraph Android ["📱 Android Client (SSOT & UDF)"]
+        direction TB
+        UI["🖼️ Jetpack Compose UI\n<i>Stateless Observers</i>"]
+        VM["⚙️ ViewModels\n<i>StateFlow Emitters</i>"]
+        Repo["📦 Repositories\n<i>Network/Cache Arbitrators</i>"]
+        Room[("💾 Room SQLite\n<i>Single Source of Truth</i>")]
+
+        UI  -- "Intents" --> VM
+        VM  -- "StateFlow" --> UI
+        VM  -- "AppResult<T>" --> Repo
+        Repo <--> Room
+    end
+
+    %% ── Edge / External ─────────────────────────────
+    CDN["☁️ Cloudinary CDN\n<i>Edge Optimization</i>"]
+
+    %% ── Spring Boot Backend ──────────────────────────
+    subgraph Backend ["⚙️ Spring Boot Backend — DDD Monorepo"]
+        direction TB
+        API["🔀 API Gateway\n<i>REST Controllers</i>"]
+
+        subgraph Contexts ["Bounded Contexts"]
+            direction LR
+            Auth["🔐 Auth\n<i>Stateless JWT</i>"]
+            Feed["📰 Feed\n<i>Chronological Engine</i>"]
+            Interact["❤️ Interaction\n<i>Idempotent UPSERTs</i>"]
+            Relate["🤝 Relationship\n<i>Idempotent Follows</i>"]
+        end
+
+        PG[("🐘 PostgreSQL\n<i>Supavisor Pooled</i>")]
+        Redis[("⚡ Redis\n<i>Planned</i>")]
+
+        API --> Auth & Feed & Interact & Relate
+        Auth & Feed & Interact & Relate --> PG
+        Feed -.->|"future"| Redis
+    end
+
+    %% ── Cross-cutting connections ────────────────────
+    Repo  -- "REST / JSON"  --> API
+    Repo  -- "Fetch Media"  --> CDN
+
+    %% ── Styles ───────────────────────────────────────
+    classDef client   fill:#1a1a2e,stroke:#ffd166,color:#ffd166
+    classDef backend  fill:#1a1a2e,stroke:#3b9eff,color:#3b9eff
+    classDef auth     fill:#1a1a2e,stroke:#ff6b6b,color:#ff6b6b
+    classDef feed     fill:#1a1a2e,stroke:#3b9eff,color:#3b9eff
+    classDef interact fill:#1a1a2e,stroke:#7c5cfc,color:#7c5cfc
+    classDef rel      fill:#1a1a2e,stroke:#00e5b0,color:#00e5b0
+    classDef infra    fill:#1a1a2e,stroke:#ff9f43,color:#ff9f43
+    classDef external fill:#1a1a2e,stroke:#888,   color:#aaa
+
+    class UI,VM,Repo,Room client
+    class API backend
+    class Auth auth
+    class Feed feed
+    class Interact interact
+    class Relate rel
+    class PG,Redis infra
+    class CDN external
+```
 ---
 
 ## 🗄️ Database Schema
@@ -111,93 +200,6 @@ erDiagram
     posts ||--o{ interactions : "receives"
     posts ||--o{ post_attachments : "has"
 ```
-
-
----
-
-## 🚧 Problem Statement
-
-Modern social news feeds face significant challenges with high-frequency read/write ratios, eventual consistency, and media optimization. Monolithic architectures often bottleneck under these conditions.
-
-**Flux** addresses these by implementing:
-
-| Challenge | Solution |
-|---|---|
-| Scalability bottlenecks | Isolated bounded contexts (Auth, Feed, Interaction, Relationship) |
-| Network retry failures | Idempotent UPSERT logic for high-frequency actions |
-| Heavy media delivery | Cloudinary CDN with on-the-fly thumbnail generation |
-| Network volatility on client | Cache-Then-Network strategy via Room Database |
-
----
-
-## 📐 Architecture Overview
-
-```mermaid
-graph TD
-    %% ── Android Client ──────────────────────────────
-    subgraph Android ["📱 Android Client"]
-        direction TB
-        UI["🖼️ Jetpack Compose UI\n<i>Material 3 · Neomorphic Theme</i>"]
-        VM["⚙️ ViewModels\n<i>MVI/MVVM · StateFlow</i>"]
-        Repo["📦 Data Repositories\n<i>Single Source of Truth</i>"]
-        Room[("💾 Room SQLite\n<i>Offline SSOT</i>")]
-
-        UI  -- "StateFlow (immutable)" --> VM
-        VM  -- "AppResult<T>"          --> Repo
-        Repo <-->                          Room
-    end
-
-    %% ── Edge / External ─────────────────────────────
-    CDN["☁️ Cloudinary CDN\n<i>On-the-fly thumbnails</i>"]
-
-    %% ── Spring Boot Backend ──────────────────────────
-    subgraph Backend ["⚙️ Spring Boot Backend  —  DDD Monorepo"]
-        direction TB
-        API["🔀 API Gateway\n<i>REST Controllers</i>"]
-
-        subgraph Contexts ["Bounded Contexts"]
-            direction LR
-            Auth["🔐 Auth\n<i>JWT · Firebase</i>"]
-            Feed["📰 Feed\n<i>Chronological Engine</i>"]
-            Interact["❤️ Interaction\n<i>Like · Bookmark</i>"]
-            Relate["🤝 Relationship\n<i>Follow · Unfollow</i>"]
-        end
-
-        PG[("🐘 PostgreSQL\n<i>Primary Data Store</i>")]
-        Redis[("⚡ Redis\n<i>Feed Cache — Planned</i>")]
-
-        API --> Auth & Feed & Interact & Relate
-        Auth & Feed & Interact & Relate --> PG
-        Feed -.->|"future"| Redis
-    end
-
-    %% ── Cross-cutting connections ────────────────────
-    Repo  -- "REST / JSON"  --> API
-    Repo  -- "Fetch Media"  --> CDN
-
-    %% ── Styles ───────────────────────────────────────
-    classDef client   fill:#1a1a2e,stroke:#ffd166,color:#ffd166
-    classDef backend  fill:#1a1a2e,stroke:#3b9eff,color:#3b9eff
-    classDef auth     fill:#1a1a2e,stroke:#ff6b6b,color:#ff6b6b
-    classDef feed     fill:#1a1a2e,stroke:#3b9eff,color:#3b9eff
-    classDef interact fill:#1a1a2e,stroke:#7c5cfc,color:#7c5cfc
-    classDef rel      fill:#1a1a2e,stroke:#00e5b0,color:#00e5b0
-    classDef infra    fill:#1a1a2e,stroke:#ff9f43,color:#ff9f43
-    classDef external fill:#1a1a2e,stroke:#888,   color:#aaa
-
-    class UI,VM,Repo,Room client
-    class API backend
-    class Auth auth
-    class Feed feed
-    class Interact interact
-    class Relate rel
-    class PG,Redis infra
-    class CDN,FCM external
-```
-
----
-
-## 🗂️ Module Structure
 
 ### Android Client
 ```
@@ -272,24 +274,9 @@ server/
 
 ---
 
-## 📱 Mobile System Design Highlights
-
-Inspired by **Manuel Vicente Vivo's "Mobile System Design Interview"**:
-
-**🔄 Offline Sync & SSOT**
-The `ProfileRepository` enforces a strict **Cache-Then-Network** strategy. Room DB serves as the single source of truth — the UI renders instantly from cache while a background sync refreshes stale data silently.
-
-**➡️ Unidirectional Data Flow (UDF)**
-UI components are fully stateless. All events flow through ViewModels, which expose immutable `StateFlow` streams. This guarantees consistent UI states even during complex async retries.
-
-**⚡ Idempotent Client-Server Communication**
-Follow/Unfollow API requests are structured to be safely retried without causing duplicate backend states. Offline actions are queued via `WorkManager` (`FollowWorker`) and synced when connectivity resumes.
-
----
-
 ## 📊 Project Status
 
-###Complited
+### Complited
 
 - [x] **Core DDD Architecture** — Monorepo with isolated modules (`auth`, `feed`, `interaction`, `relationship`)
 - [x] **Client Theming** — "Cosmic Ambient" custom design system using Material 3
@@ -301,7 +288,7 @@ Follow/Unfollow API requests are structured to be safely retried without causing
 - [x] **Interaction Wiring** — Connect Like/Bookmark from UI to the backend interaction module
 - [x] **Chronological Feed Engine** — SQL-based feed generation with proper DB indexing
 
-###Remaining
+### Remaining
 - [ ] **XML Based caption** - Editing and preview
 ---
 
@@ -331,7 +318,7 @@ timeline
 
 ## 🤝 Contributing
 
-This is an engineering case study. Issues and PRs are welcome for discussion of architectural decisions.
+This is an engineering case study focused on applying mobile system design concepts. Issues and PRs are welcome for discussion of architectural decisions, scaling strategies, and optimizations.
 
 ---
 
