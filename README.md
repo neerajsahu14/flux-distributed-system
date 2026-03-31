@@ -276,7 +276,7 @@ server/
 
 ## 📊 Project Status
 
-###Complited
+### Complited
 
 - [x] **Core DDD Architecture** — Monorepo with isolated modules (`auth`, `feed`, `interaction`, `relationship`)
 - [x] **Client Theming** — "Cosmic Ambient" custom design system using Material 3
@@ -288,7 +288,7 @@ server/
 - [x] **Interaction Wiring** — Connect Like/Bookmark from UI to the backend interaction module
 - [x] **Chronological Feed Engine** — SQL-based feed generation with proper DB indexing
 
-###Remaining
+### Remaining
 - [ ] **XML Based caption** - Editing and preview
 ---
 
