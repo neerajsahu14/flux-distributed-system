@@ -274,7 +274,7 @@ server/
 
 ## 📱 Mobile System Design Highlights
 
-Inspired by **Manuel Vicente Vivo's "Mobile System Design"**:
+Inspired by **Manuel Vicente Vivo's "Mobile System Design Interview"**:
 
 **🔄 Offline Sync & SSOT**
 The `ProfileRepository` enforces a strict **Cache-Then-Network** strategy. Room DB serves as the single source of truth — the UI renders instantly from cache while a background sync refreshes stale data silently.
@@ -289,7 +289,7 @@ Follow/Unfollow API requests are structured to be safely retried without causing
 
 ## 📊 Project Status
 
-### ✅ Completed
+###Complited
 
 - [x] **Core DDD Architecture** — Monorepo with isolated modules (`auth`, `feed`, `interaction`, `relationship`)
 - [x] **Client Theming** — "Cosmic Ambient" custom design system using Material 3
@@ -297,13 +297,12 @@ Follow/Unfollow API requests are structured to be safely retried without causing
 - [x] **Offline-First Profile** — `ProfileRepository` with Room DB caching + network fallback
 - [x] **Cloudinary Integration** — Backend media upload pipeline + edge thumbnail generation
 - [x] **UI Screens** — Login, Dynamic Profile (View/Edit modes), Connections List
+- [x] **Feed Home Page UI** — "Fluid Timeline" with asymmetric visual clusters for the main feed
+- [x] **Interaction Wiring** — Connect Like/Bookmark from UI to the backend interaction module
+- [x] **Chronological Feed Engine** — SQL-based feed generation with proper DB indexing
 
-### ⏳ Pending
-
-- [ ] **Feed Home Page UI** — "Fluid Timeline" with asymmetric visual clusters for the main feed
-- [ ] **Interaction Wiring** — Connect Like/Bookmark from UI to the backend interaction module
-- [ ] **Chronological Feed Engine** — SQL-based feed generation with proper DB indexing
-
+###Remaining
+- [ ] **XML Based caption** - Editing and preview
 ---
 
 ## 🚀 Future Roadmap
