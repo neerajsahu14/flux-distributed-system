@@ -33,7 +33,6 @@ class FeedService(
 ) {
 
     // ==================== CREATE ====================
-    @Transactional
     fun createPost(user: User, file: MultipartFile, req: CreatePostRequest): PostResponse {
         // 1. Idempotency Check
         if (postRepository.existsByRequestId(req.requestId)) {
