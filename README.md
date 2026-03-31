@@ -5,7 +5,7 @@
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-F2F4F9?style=for-the-badge&logo=spring-boot)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 
-> A full-stack engineering case study directly applying the core architectural principles from **Manuel Vicente Vivo's "Mobile System Design Interview"**. This project demonstrates how to build a scalable, distributed news feed system by architecting around strict mobile constraints—unstable networks, battery preservation, and complex state management.
+> A full-stack engineering case study directly applying the core architectural principles from [@manuelvicnt](https://github.com/manuelvicnt) **Manuel Vicente Vivo's "Mobile System Design Interview"**. This project demonstrates how to build a scalable, distributed news feed system by architecting around strict mobile constraints—unstable networks, battery preservation, and complex state management.
 
 ---
 
