@@ -9,6 +9,51 @@
 
 ---
 
+## 📸 App Screenshots
+
+> **Cosmic Ambient** design system — Material 3 with custom neomorphic theming
+
+<table>
+  <tr>
+    <td align="center"><b>Login</b></td>
+    <td align="center"><b>Sign Up</b></td>
+    <td align="center"><b>Feed</b></td>
+    <td align="center"><b>Profile</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/login.jpg" width="180"/></td>
+    <td><img src="screenshots/signup.jpg" width="180"/></td>
+    <td><img src="screenshots/feed.jpg" width="180"/></td>
+    <td><img src="screenshots/profile.jpg" width="180"/></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center"><b>Explore</b></td>
+    <td align="center"><b>Feed Detail</b></td>
+    <td align="center"><b>Create Post</b></td>
+    <td align="center"><b>Create Post Preview</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/explore.jpg" width="180"/></td>
+    <td><img src="screenshots/feed_detail.jpg" width="180"/></td>
+    <td><img src="screenshots/createpost.jpg" width="180"/></td>
+    <td><img src="screenshots/create post preview.jpg" width="180"/></td>
+  </tr>
+</table>
+
+---
+
+## 🗄️ Database Schema
+
+> PostgreSQL schema spanning 4 bounded contexts — Auth, Feed, Interaction, Relationship
+
+![DB Schema](screenshots/db_schema.png)
+
+
+---
+
 ## 🚧 Problem Statement
 
 Modern social news feeds face significant challenges with high-frequency read/write ratios, eventual consistency, and media optimization. Monolithic architectures often bottleneck under these conditions.

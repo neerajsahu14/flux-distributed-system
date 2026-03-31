@@ -47,6 +47,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+            excludes += listOf("**/libdatastore_shared_counter.so")
+        }
+    }
     buildFeatures {
         compose = true
         buildConfig = true

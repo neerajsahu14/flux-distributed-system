@@ -12,6 +12,7 @@ import com.neerajsahu.flux.androidclient.feature.auth.domain.model.User
 import com.neerajsahu.flux.androidclient.feature.auth.domain.repository.AuthRepository
 import com.neerajsahu.flux.androidclient.feature.auth.mapper.toUser
 import com.neerajsahu.flux.androidclient.feature.auth.mapper.toUserEntity
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -76,6 +77,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun getProfile(): Flow<User?> {
         return tokenManager.getUserId().flatMapLatest { userId ->
             if (userId != null) {
