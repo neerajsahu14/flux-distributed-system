@@ -49,7 +49,68 @@
 
 > PostgreSQL schema spanning 4 bounded contexts — Auth, Feed, Interaction, Relationship
 
-![DB Schema](screenshots/db_schema.png)
+```mermaid
+erDiagram
+    users {
+        int8 id PK
+        varchar username
+        varchar email
+        varchar password_hash
+        text bio
+        text profile_pic_url
+        timestamptz created_at
+        bool isvalid
+    }
+
+    posts {
+        int8 id PK
+        int8 user_id FK
+        text content
+        varchar request_id
+        int4 like_count
+        int4 attachment_count
+        int4 share_count
+        timestamptz created_at
+        timestamptz updated_at
+        bool isvalid
+    }
+
+    follows {
+        int8 follower_id FK
+        int8 followee_id FK
+        varchar request_id
+        timestamptz created_at
+        bool isvalid
+    }
+
+    interactions {
+        int8 id PK
+        int8 user_id FK
+        int8 post_id FK
+        varchar action_type
+        varchar request_id
+        timestamptz created_at
+        bool isvalid
+    }
+
+    post_attachments {
+        int8 id PK
+        int8 post_id FK
+        varchar media_type
+        text content_url
+        text thumbnail_url
+        text caption
+        int4 display_order
+        bool isvalid
+    }
+
+    users ||--o{ posts : "writes"
+    users ||--o{ follows : "follower_id"
+    users ||--o{ follows : "followee_id"
+    users ||--o{ interactions : "performs"
+    posts ||--o{ interactions : "receives"
+    posts ||--o{ post_attachments : "has"
+```
 
 
 ---
