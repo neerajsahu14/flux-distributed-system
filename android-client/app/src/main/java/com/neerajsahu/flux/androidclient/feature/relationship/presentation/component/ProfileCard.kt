@@ -1,5 +1,6 @@
-package com.neerajsahu.flux.androidclient.feature.relationship.presentation
+package com.neerajsahu.flux.androidclient.feature.relationship.presentation.component
 
+import android.graphics.Paint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -52,7 +53,7 @@ fun RelationshipProfileCard(
                 .size(64.dp)
                 .drawBehind {
                     val glowColor = if (buttonText == "Follow") Color(0xFF00D4FF) else Color(0xFF475569)
-                    val paint = android.graphics.Paint().apply {
+                    val paint = Paint().apply {
                         isAntiAlias = true
                         color = android.graphics.Color.TRANSPARENT
                         setShadowLayer(14.dp.toPx(), 0f, 0f, glowColor.copy(alpha = 0.5f).toArgb())
@@ -150,7 +151,7 @@ fun NeonButton(
             .height(38.dp)
             .drawBehind {
                 if (!isDark) {
-                    val paint = android.graphics.Paint().apply {
+                    val paint = Paint().apply {
                         isAntiAlias = true
                         color = android.graphics.Color.TRANSPARENT
                         setShadowLayer(10.dp.toPx(), 0f, 0f, buttonColor.copy(alpha = 0.6f).toArgb())

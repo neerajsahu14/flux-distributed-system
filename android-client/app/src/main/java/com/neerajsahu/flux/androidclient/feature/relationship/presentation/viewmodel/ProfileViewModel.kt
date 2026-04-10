@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.feature.relationship.presentation
+package com.neerajsahu.flux.androidclient.feature.relationship.presentation.viewmodel
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +11,7 @@ import com.neerajsahu.flux.androidclient.feature.feed.domain.repository.FeedRepo
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.ProfileStats
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.RelationshipUser
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.repository.RelationshipRepository
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.intent.ProfileIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -48,7 +49,17 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun getProfile(userId: Long, forceRefresh: Boolean = false) {
+    fun onIntent(intent: ProfileIntent) {
+        when (intent) {
+            is ProfileIntent.LoadProfile -> getProfile(userId = intent.userId, forceRefresh = intent.forceRefresh)
+            is ProfileIntent.LoadFollowers -> getFollowers(userId = intent.userId, forceRefresh = intent.forceRefresh)
+            is ProfileIntent.LoadFollowing -> getFollowing(userId = intent.userId, forceRefresh = intent.forceRefresh)
+            is ProfileIntent.ToggleFollow -> toggleFollow(targetUserId = intent.userId)
+            ProfileIntent.ClearError -> clearError()
+        }
+    }
+
+    private fun getProfile(userId: Long, forceRefresh: Boolean = false) {
         viewModelScope.launch {
             val currentUserId = tokenManager.getUserId().first() ?: 0L
             val targetUserId = if (userId == 0L) currentUserId else userId
@@ -105,7 +116,7 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun getFollowers(userId: Long, forceRefresh: Boolean = false) {
+    private fun getFollowers(userId: Long, forceRefresh: Boolean = false) {
         if (!forceRefresh && _state.value.profile?.userId == userId && _state.value.followers.isNotEmpty()) {
             return
         }
@@ -128,7 +139,7 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun getFollowing(userId: Long, forceRefresh: Boolean = false) {
+    private fun getFollowing(userId: Long, forceRefresh: Boolean = false) {
         if (!forceRefresh && _state.value.profile?.userId == userId && _state.value.following.isNotEmpty()) {
             return
         }
@@ -151,7 +162,7 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun toggleFollow(targetUserId: Long) {
+    private fun toggleFollow(targetUserId: Long) {
         viewModelScope.launch {
             val requestId = UUID.randomUUID().toString()
             
@@ -195,6 +206,10 @@ class ProfileViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun clearError() {
+        _state.value = _state.value.copy(error = null)
     }
 
     private fun updateFollowStatusInLists(userId: Long, isFollowing: Boolean) {

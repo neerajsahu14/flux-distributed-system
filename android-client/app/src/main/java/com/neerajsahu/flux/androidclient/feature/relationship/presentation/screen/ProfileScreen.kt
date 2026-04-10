@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.feature.relationship.presentation
+package com.neerajsahu.flux.androidclient.feature.relationship.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,6 +34,8 @@ import com.neerajsahu.flux.androidclient.core.ui.components.FluxLineBackground
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.viewmodel.ProfileViewModel
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.intent.ProfileIntent
 
 @Composable
 fun ProfileScreen(
@@ -47,7 +49,7 @@ fun ProfileScreen(
     val state = viewModel.state.value
 
     LaunchedEffect(userId) {
-        viewModel.getProfile(userId, forceRefresh = false)
+        viewModel.onIntent(ProfileIntent.LoadProfile(userId = userId, forceRefresh = false))
     }
 
     Box(
@@ -60,7 +62,7 @@ fun ProfileScreen(
 
         PullToRefreshBox(
             isRefreshing = state.isLoading || state.isPostsLoading,
-            onRefresh = { viewModel.getProfile(userId, forceRefresh = true) },
+            onRefresh = { viewModel.onIntent(ProfileIntent.LoadProfile(userId = userId, forceRefresh = true)) },
             modifier = Modifier.fillMaxSize()
         ) {
             Column(
@@ -97,7 +99,7 @@ fun ProfileScreen(
                     ProfileActions(
                         isCurrentUser = state.isCurrentUser,
                         isFollowing = profile.isFollowing,
-                        onFollowClick = { viewModel.toggleFollow(userId) },
+                        onFollowClick = { viewModel.onIntent(ProfileIntent.ToggleFollow(userId)) },
                         onEditClick = onEditProfileClick
                     )
 

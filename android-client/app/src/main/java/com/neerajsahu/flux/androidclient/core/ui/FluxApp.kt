@@ -28,10 +28,10 @@ import com.neerajsahu.flux.androidclient.feature.auth.presentation.screen.SignUp
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.screen.CreatePostScreen
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.screen.FeedScreen
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.screen.PostDetailScreen
-import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ConnectionScreen
-import com.neerajsahu.flux.androidclient.feature.relationship.presentation.EditProfileScreen
-import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ExploreScreen
-import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ProfileScreen
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.screen.ConnectionScreen
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.screen.EditProfileScreen
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.screen.ExploreScreen
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.screen.ProfileScreen
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 

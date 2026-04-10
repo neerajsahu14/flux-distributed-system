@@ -1,7 +1,9 @@
-package com.neerajsahu.flux.androidclient.feature.relationship.presentation
+package com.neerajsahu.flux.androidclient.feature.relationship.presentation.screen
 
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,6 +32,8 @@ import com.neerajsahu.flux.androidclient.R
 import com.neerajsahu.flux.androidclient.core.ui.components.FluxLineBackground
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.viewmodel.EditProfileViewModel
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.intent.EditProfileIntent
 import java.io.File
 import java.io.FileOutputStream
 
@@ -50,7 +54,7 @@ fun EditProfileScreen(
                 // For this implementation, we'll simulate the "cropped" result.
                 val file = context.saveUriToFile(it)
                 if (file != null) {
-                    viewModel.onImageSelected(it, file)
+                    viewModel.onIntent(EditProfileIntent.ImageSelected(uri = it, file = file))
                 }
             }
         }
@@ -93,7 +97,7 @@ fun EditProfileScreen(
                 if (state.isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = FluxCyan)
                 } else {
-                    TextButton(onClick = viewModel::updateProfile) {
+                    TextButton(onClick = { viewModel.onIntent(EditProfileIntent.UpdateProfile) }) {
                         Text("Save", color = FluxCyan, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -111,7 +115,7 @@ fun EditProfileScreen(
                         .size(120.dp)
                         .clickable {
                             photoPickerLauncher.launch(
-                                androidx.activity.result.PickVisualMediaRequest(
+                                PickVisualMediaRequest(
                                     ActivityResultContracts.PickVisualMedia.ImageOnly
                                 )
                             )
@@ -163,7 +167,7 @@ fun EditProfileScreen(
                 // Bio Input
                 OutlinedTextField(
                     value = state.bio,
-                    onValueChange = viewModel::onBioChanged,
+                    onValueChange = { viewModel.onIntent(EditProfileIntent.BioChanged(it)) },
                     label = { Text("Bio", color = Color.Gray) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -193,14 +197,14 @@ fun EditProfileScreen(
     // Success Effect
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
-            viewModel.consumeSuccess()
+            viewModel.onIntent(EditProfileIntent.ConsumeSuccess)
             onBackClick()
         }
     }
 }
 
 // Helper to save Uri to a temporary file
-private fun android.content.Context.saveUriToFile(uri: Uri): File? {
+private fun Context.saveUriToFile(uri: Uri): File? {
     return try {
         val inputStream = contentResolver.openInputStream(uri)
         val tempFile = File(cacheDir, "temp_profile_image.jpg")

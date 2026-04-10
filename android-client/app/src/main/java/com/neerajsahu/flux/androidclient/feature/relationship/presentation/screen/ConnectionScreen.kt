@@ -1,5 +1,6 @@
-package com.neerajsahu.flux.androidclient.feature.relationship.presentation
+package com.neerajsahu.flux.androidclient.feature.relationship.presentation.screen
 
+import android.graphics.Paint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -25,6 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.clickable
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.viewmodel.ProfileViewModel
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.component.RelationshipProfileCard
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.intent.ProfileIntent
 
 @Composable
 fun ConnectionScreen(
@@ -40,9 +44,9 @@ fun ConnectionScreen(
 
     LaunchedEffect(userId, selectedTab) {
         if (selectedTab == 0) {
-            viewModel.getFollowers(userId)
+            viewModel.onIntent(ProfileIntent.LoadFollowers(userId = userId))
         } else {
-            viewModel.getFollowing(userId)
+            viewModel.onIntent(ProfileIntent.LoadFollowing(userId = userId))
         }
     }
 
@@ -64,9 +68,9 @@ fun ConnectionScreen(
             isRefreshing = state.isLoading,
             onRefresh = { 
                 if (selectedTab == 0) {
-                    viewModel.getFollowers(userId, forceRefresh = true)
+                    viewModel.onIntent(ProfileIntent.LoadFollowers(userId = userId, forceRefresh = true))
                 } else {
-                    viewModel.getFollowing(userId, forceRefresh = true)
+                    viewModel.onIntent(ProfileIntent.LoadFollowing(userId = userId, forceRefresh = true))
                 }
             },
             modifier = Modifier.fillMaxSize()
@@ -154,11 +158,11 @@ fun ConnectionScreen(
                             user.isFollowing -> "Following"
                             else -> "Follow"
                         }
-                        
+
                         RelationshipProfileCard(
                             user = user,
                             buttonText = buttonText,
-                            onButtonClick = { viewModel.toggleFollow(user.id) },
+                            onButtonClick = { viewModel.onIntent(ProfileIntent.ToggleFollow(user.id)) },
                             onProfileClick = { onProfileClick(user.id) },
                             isCurrentUser = user.id == state.currentUserId
                         )
@@ -188,7 +192,7 @@ fun ConnectionTabItem(
             .drawBehind {
                 if (isSelected) {
                     val glowColor = Color(0xFF38BDF8)
-                    val paint = android.graphics.Paint().apply {
+                    val paint = Paint().apply {
                         isAntiAlias = true
                         color = android.graphics.Color.TRANSPARENT
                         setShadowLayer(20.dp.toPx(), 0f, 0f, glowColor.toArgb())

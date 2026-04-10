@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.feature.relationship.presentation
+package com.neerajsahu.flux.androidclient.feature.relationship.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,6 +32,8 @@ import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxGlassWhite
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.RelationshipUser
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.viewmodel.ExploreViewModel
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.intent.ExploreIntent
 
 @Composable
 fun ExploreScreen(
@@ -68,7 +70,7 @@ fun ExploreScreen(
             // Search Bar
             OutlinedTextField(
                 value = state.searchQuery,
-                onValueChange = viewModel::onQueryChanged,
+                onValueChange = { viewModel.onIntent(ExploreIntent.QueryChanged(it)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -130,7 +132,7 @@ fun ExploreScreen(
                             SearchUserItem(
                                 user = user,
                                 onClick = { onProfileClick(user.id) },
-                                onFollowClick = { viewModel.toggleFollow(user.id) },
+                                onFollowClick = { viewModel.onIntent(ExploreIntent.ToggleFollow(user.id)) },
                                 isCurrentUser = user.id == state.currentUserId
                             )
                         }

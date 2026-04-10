@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.feature.relationship.presentation
+package com.neerajsahu.flux.androidclient.feature.relationship.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -55,7 +55,15 @@ class ExploreViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    fun onQueryChanged(newQuery: String) {
+    fun onIntent(intent: ExploreIntent) {
+        when (intent) {
+            is ExploreIntent.QueryChanged -> onQueryChanged(intent.query)
+            is ExploreIntent.ToggleFollow -> toggleFollow(intent.userId)
+            ExploreIntent.ClearError -> clearError()
+        }
+    }
+
+    private fun onQueryChanged(newQuery: String) {
         _searchQuery.value = newQuery
         _state.update { it.copy(searchQuery = newQuery) }
     }
@@ -74,7 +82,7 @@ class ExploreViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun toggleFollow(userId: Long) {
+    private fun toggleFollow(userId: Long) {
         viewModelScope.launch {
             val user = _state.value.searchResults.find { it.id == userId } ?: return@launch
             val requestId = UUID.randomUUID().toString()
@@ -95,6 +103,10 @@ class ExploreViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun clearError() {
+        _state.update { it.copy(error = null) }
     }
 
     private fun updateUserFollowStatus(userId: Long, isFollowing: Boolean) {

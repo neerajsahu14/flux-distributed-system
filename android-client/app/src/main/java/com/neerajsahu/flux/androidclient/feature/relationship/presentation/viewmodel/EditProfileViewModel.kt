@@ -1,10 +1,12 @@
-package com.neerajsahu.flux.androidclient.feature.relationship.presentation
+package com.neerajsahu.flux.androidclient.feature.relationship.presentation.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerajsahu.flux.androidclient.core.network.AppResult
 import com.neerajsahu.flux.androidclient.feature.auth.domain.model.User
 import com.neerajsahu.flux.androidclient.feature.auth.domain.repository.AuthRepository
+import com.neerajsahu.flux.androidclient.feature.relationship.presentation.intent.EditProfileIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -14,7 +16,7 @@ import javax.inject.Inject
 data class EditProfileState(
     val user: User? = null,
     val bio: String = "",
-    val pendingImageUri: android.net.Uri? = null,
+    val pendingImageUri: Uri? = null,
     val pendingImageFile: File? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
@@ -35,15 +37,25 @@ class EditProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun onBioChanged(newBio: String) {
+    fun onIntent(intent: EditProfileIntent) {
+        when (intent) {
+            is EditProfileIntent.BioChanged -> onBioChanged(intent.bio)
+            is EditProfileIntent.ImageSelected -> onImageSelected(intent.uri, intent.file)
+            EditProfileIntent.UpdateProfile -> updateProfile()
+            EditProfileIntent.ClearError -> clearError()
+            EditProfileIntent.ConsumeSuccess -> consumeSuccess()
+        }
+    }
+
+    private fun onBioChanged(newBio: String) {
         _state.update { it.copy(bio = newBio) }
     }
 
-    fun onImageSelected(uri: android.net.Uri, file: File) {
+    private fun onImageSelected(uri: Uri, file: File) {
         _state.update { it.copy(pendingImageUri = uri, pendingImageFile = file) }
     }
 
-    fun updateProfile() {
+    private fun updateProfile() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             
@@ -78,11 +90,11 @@ class EditProfileViewModel @Inject constructor(
         }
     }
     
-    fun clearError() {
+    private fun clearError() {
         _state.update { it.copy(error = null) }
     }
     
-    fun consumeSuccess() {
+    private fun consumeSuccess() {
         _state.update { it.copy(isSuccess = false) }
     }
 }
