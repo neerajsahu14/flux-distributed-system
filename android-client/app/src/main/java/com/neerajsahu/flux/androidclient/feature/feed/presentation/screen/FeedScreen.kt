@@ -59,14 +59,14 @@ fun FeedScreen(
 
     LaunchedEffect(Unit) {
         if (state.posts.isEmpty()) {
-            viewModel.onIntent(FeedIntent.LoadGlobal())
+            viewModel.loadGlobalFeed()
         }
     }
 
     LaunchedEffect(selectedTabIndex) {
         when (selectedTabIndex) {
-            0 -> viewModel.onIntent(FeedIntent.LoadGlobal())
-            1 -> viewModel.onIntent(FeedIntent.LoadTimeline())
+            0 -> viewModel.loadGlobalFeed()
+            1 -> viewModel.loadTimelineFeed()
         }
     }
         Box(
@@ -113,7 +113,7 @@ fun FeedScreen(
                     ) {
                         Button(
                             onClick = {
-                                viewModel.onIntent(FeedIntent.ApplyNewPosts)
+                                viewModel.applyNewPosts()
                                 coroutineScope.launch {
                                     listState.animateScrollToItem(0)
                                 }
@@ -150,7 +150,7 @@ fun FeedScreen(
                                     color = FluxRuby,
                                     modifier = Modifier.padding(24.dp)
                                 )
-                                TextButton(onClick = { viewModel.onIntent(FeedIntent.Refresh) }) {
+                                TextButton(onClick = viewModel::refresh) {
                                     Text("Retry", color = FluxCyan)
                                 }
                             }
@@ -159,7 +159,7 @@ fun FeedScreen(
                     else -> {
                         PullToRefreshBox(
                             isRefreshing = state.isRefreshing,
-                            onRefresh = { viewModel.onIntent(FeedIntent.Refresh) },
+                            onRefresh = { viewModel.refresh() },
                             modifier = Modifier.fillMaxSize()
                         ) {
                             LazyColumn(
@@ -172,7 +172,7 @@ fun FeedScreen(
                                     // Pagination trigger
                                     if (index == state.posts.lastIndex && state.hasMore) {
                                         LaunchedEffect(index) {
-                                            viewModel.onIntent(FeedIntent.LoadMore)
+                                            viewModel.loadMorePosts()
                                         }
                                     }
                                     
@@ -187,9 +187,9 @@ fun FeedScreen(
                                             onProfileClick = onProfileClick,
                                             onPostClick = onPostClick,
                                             isInteractionInFlight = state.interactionInFlightPostIds.contains(post.id),
-                                            onLikeClick = { viewModel.onIntent(FeedIntent.Like(post.id)) },
-                                            onBookmarkClick = { viewModel.onIntent(FeedIntent.Bookmark(post.id)) },
-                                            onShareClick = { viewModel.onIntent(FeedIntent.Share(post.id)) }
+                                            onLikeClick = { viewModel.onLikeClick(post.id) },
+                                            onBookmarkClick = { viewModel.onBookmarkClick(post.id) },
+                                            onShareClick = { viewModel.onShareClick(post.id) }
                                         )
                                     }
                                 }

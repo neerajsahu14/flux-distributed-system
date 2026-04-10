@@ -67,15 +67,18 @@ fun CreatePostScreen(
 
     val mediaPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri -> viewModel.onMediaSelected(uri?.toString()) }
     ) { uri -> viewModel.onIntent(CreatePostIntent.MediaSelected(uri?.toString())) }
 
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
             snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
             viewModel.onIntent(CreatePostIntent.ClearError)
         }
     }
     LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) { viewModel.consumeSuccess(); onPostCreated() }
         if (state.isSuccess) {
             viewModel.onIntent(CreatePostIntent.ConsumeSuccess)
             onPostCreated()
@@ -163,6 +166,7 @@ fun CreatePostScreen(
                 MediaPreviewCard(
                     uri = previewUri,
                     isVideo = isVideo,
+                    onRemove = viewModel::clearSelectedMedia,
                     onRemove = { viewModel.onIntent(CreatePostIntent.ClearSelectedMedia) },
                     onReplace = {
                         mediaPicker.launch(
@@ -217,6 +221,7 @@ fun CreatePostScreen(
                     }
                     BasicTextField(
                         value = state.caption,
+                        onValueChange = viewModel::onCaptionChanged,
                         onValueChange = { viewModel.onIntent(CreatePostIntent.CaptionChanged(it)) },
                         textStyle = TextStyle(
                             color = FluxText,
@@ -240,6 +245,8 @@ fun CreatePostScreen(
                 onClick = {
                     val uri = state.selectedMediaUri?.let(Uri::parse)
                     val mediaPart = uri?.let { context.toMediaMultipartPart(it) }
+                    if (mediaPart != null) viewModel.createPost(mediaPart)
+                    else viewModel.setError("Unable to read selected media.")
                     if (mediaPart != null) {
                         viewModel.onIntent(CreatePostIntent.Submit(mediaPart))
                     } else {

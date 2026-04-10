@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.feature.auth.presentation
+package com.neerajsahu.flux.androidclient.feature.auth.presentation.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -6,7 +6,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
@@ -23,6 +22,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.KeyboardActions
 import com.neerajsahu.flux.androidclient.R
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.intent.AuthIntent
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.component.AuthButton
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.component.AuthScreenContainer
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.component.FluxInputField
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.component.FluxLogo
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(
@@ -66,7 +71,7 @@ fun LoginScreen(
         FluxInputField(
             label = "Email",
             value = viewModel.loginEmail.value,
-            onValueChange = viewModel::onLoginEmailChange,
+            onValueChange = { viewModel.onIntent(AuthIntent.LoginEmailChanged(it)) },
             placeholder = "Enter your email",
             iconResId = R.drawable.ic_person,
             keyboardOptions = KeyboardOptions(
@@ -80,7 +85,7 @@ fun LoginScreen(
         FluxInputField(
             label = "Password",
             value = viewModel.loginPassword.value,
-            onValueChange = viewModel::onLoginPasswordChange,
+            onValueChange = { viewModel.onIntent(AuthIntent.LoginPasswordChanged(it)) },
             placeholder = "••••••••",
             iconResId = R.drawable.ic_lock,
             isPassword = true,
@@ -89,7 +94,7 @@ fun LoginScreen(
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
-                onDone = { viewModel.login() }
+                onDone = { viewModel.onIntent(AuthIntent.Login) }
             ),
             trailingContent = {
                 Text(
@@ -105,9 +110,9 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        FluxButton(
+        AuthButton(
             text = "Access Your Feed",
-            onClick = viewModel::login,
+            onClick = { viewModel.onIntent(AuthIntent.Login) },
             isLoading = state.isLoading
         )
 

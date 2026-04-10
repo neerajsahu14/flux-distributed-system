@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.feature.auth.presentation
+package com.neerajsahu.flux.androidclient.feature.auth.presentation.viewmodel
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.neerajsahu.flux.androidclient.core.network.AppResult
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.RegisterRequestDto
 import com.neerajsahu.flux.androidclient.feature.auth.domain.repository.AuthRepository
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.intent.AuthIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -52,39 +53,54 @@ class AuthViewModel @Inject constructor(
     private val _signupState = mutableStateOf(AuthState())
     val signupState: State<AuthState> = _signupState
 
-    fun onLoginEmailChange(newValue: String) {
+    fun onIntent(intent: AuthIntent) {
+        when (intent) {
+            is AuthIntent.LoginEmailChanged -> onLoginEmailChange(intent.value)
+            is AuthIntent.LoginPasswordChanged -> onLoginPasswordChange(intent.value)
+            is AuthIntent.SignupEmailChanged -> onSignupEmailChange(intent.value)
+            is AuthIntent.SignupPasswordChanged -> onSignupPasswordChange(intent.value)
+            is AuthIntent.ConfirmPasswordChanged -> onConfirmPasswordChange(intent.value)
+            is AuthIntent.UsernameChanged -> onUsernameChange(intent.value)
+            is AuthIntent.FullNameChanged -> onFullNameChange(intent.value)
+            is AuthIntent.BioChanged -> onBioChange(intent.value)
+            is AuthIntent.Login -> login()
+            is AuthIntent.Signup -> signup()
+        }
+    }
+
+    private fun onLoginEmailChange(newValue: String) {
         _loginEmail.value = newValue
     }
 
-    fun onLoginPasswordChange(newValue: String) {
+    private fun onLoginPasswordChange(newValue: String) {
         _loginPassword.value = newValue
     }
 
-    fun onSignupEmailChange(newValue: String) {
+    private fun onSignupEmailChange(newValue: String) {
         _signupEmail.value = newValue
     }
 
-    fun onSignupPasswordChange(newValue: String) {
+    private fun onSignupPasswordChange(newValue: String) {
         _signupPassword.value = newValue
     }
 
-    fun onConfirmPasswordChange(newValue: String) {
+    private fun onConfirmPasswordChange(newValue: String) {
         _confirmPassword.value = newValue
     }
 
-    fun onUsernameChange(newValue: String) {
+    private fun onUsernameChange(newValue: String) {
         _username.value = newValue
     }
 
-    fun onFullNameChange(newValue: String) {
+    private fun onFullNameChange(newValue: String) {
         _fullName.value = newValue
     }
 
-    fun onBioChange(newValue: String) {
+    private fun onBioChange(newValue: String) {
         _bio.value = newValue
     }
 
-    fun login() {
+    private fun login() {
         viewModelScope.launch {
             _loginState.value = AuthState(isLoading = true)
             val result = authRepository.login(_loginEmail.value, _loginPassword.value)
@@ -99,7 +115,7 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun signup() {
+    private fun signup() {
         if (_signupPassword.value != _confirmPassword.value) {
             _signupState.value = AuthState(error = "Passwords do not match")
             return

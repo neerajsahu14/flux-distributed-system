@@ -30,31 +30,19 @@ class CreatePostViewModel @Inject constructor(
     private val _state = MutableStateFlow(CreatePostUiState())
     val state = _state.asStateFlow()
 
-    fun onIntent(intent: CreatePostIntent) {
-        when (intent) {
-            is CreatePostIntent.CaptionChanged -> onCaptionChanged(intent.caption)
-            is CreatePostIntent.MediaSelected -> onMediaSelected(intent.uri)
-            is CreatePostIntent.ClearSelectedMedia -> clearSelectedMedia()
-            is CreatePostIntent.Submit -> createPost(intent.mediaPart)
-            is CreatePostIntent.ClearError -> clearError()
-            is CreatePostIntent.SetError -> setError(intent.message)
-            is CreatePostIntent.ConsumeSuccess -> consumeSuccess()
-        }
-    }
-
-    private fun onCaptionChanged(caption: String) {
+    fun onCaptionChanged(caption: String) {
         _state.update { it.copy(caption = caption, errorMessage = null) }
     }
 
-    private fun onMediaSelected(uri: String?) {
+    fun onMediaSelected(uri: String?) {
         _state.update { it.copy(selectedMediaUri = uri, errorMessage = null) }
     }
 
-    private fun clearSelectedMedia() {
+    fun clearSelectedMedia() {
         _state.update { it.copy(selectedMediaUri = null, errorMessage = null) }
     }
 
-    private fun createPost(mediaPart: MultipartBody.Part) {
+    fun createPost(mediaPart: MultipartBody.Part) {
         val current = _state.value
         if (current.isSubmitting) return
 
@@ -96,15 +84,15 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
-    private fun clearError() {
+    fun clearError() {
         _state.update { it.copy(errorMessage = null) }
     }
 
-    private fun setError(message: String) {
+    fun setError(message: String) {
         _state.update { it.copy(errorMessage = message) }
     }
 
-    private fun consumeSuccess() {
+    fun consumeSuccess() {
         _state.update { current ->
             if (!current.isSuccess) current else current.copy(isSuccess = false)
         }

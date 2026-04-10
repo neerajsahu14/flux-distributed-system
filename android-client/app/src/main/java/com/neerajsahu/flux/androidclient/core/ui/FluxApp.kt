@@ -23,8 +23,8 @@ import com.neerajsahu.flux.androidclient.core.navigation.Route
 import com.neerajsahu.flux.androidclient.core.ui.components.FluxBottomDock
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
-import com.neerajsahu.flux.androidclient.feature.auth.presentation.LoginScreen
-import com.neerajsahu.flux.androidclient.feature.auth.presentation.SignUpScreen
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.screen.LoginScreen
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.screen.SignUpScreen
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.screen.CreatePostScreen
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.screen.FeedScreen
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.screen.PostDetailScreen

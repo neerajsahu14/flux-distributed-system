@@ -1,6 +1,6 @@
-package com.neerajsahu.flux.androidclient.feature.auth.presentation
+package com.neerajsahu.flux.androidclient.feature.auth.presentation.component
 
-import androidx.compose.foundation.Canvas
+import android.graphics.Paint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -9,11 +9,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -28,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -35,6 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -102,9 +102,9 @@ fun FluxInputField(
     keyboardType: KeyboardType = KeyboardType.Text,
     keyboardOptions: KeyboardOptions = KeyboardOptions(
         keyboardType = keyboardType,
-        imeAction = androidx.compose.ui.text.input.ImeAction.Next
+        imeAction = ImeAction.Next
     ),
-    keyboardActions: androidx.compose.foundation.text.KeyboardActions = androidx.compose.foundation.text.KeyboardActions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     trailingContent: @Composable (() -> Unit)? = null
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
@@ -134,7 +134,7 @@ fun FluxInputField(
                 .drawBehind {
                     val shadowColor = Color(0xFF38BDF8).copy(alpha = 0.4f).toArgb()
                     val transparentColor = Color.Transparent.toArgb()
-                    val paint = android.graphics.Paint().apply {
+                    val paint = Paint().apply {
                         color = transparentColor
                         setShadowLayer(16.dp.toPx(), 0f, 0f, shadowColor)
                     }
@@ -177,7 +177,7 @@ fun FluxInputField(
                     visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
                     keyboardOptions = keyboardOptions,
                     keyboardActions = keyboardActions,
-                    cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFF38BDF8)),
+                    cursorBrush = SolidColor(Color(0xFF38BDF8)),
                     modifier = Modifier.weight(1f),
                     decorationBox = { innerTextField ->
                         if (value.isEmpty()) {
@@ -207,7 +207,7 @@ fun FluxInputField(
 }
 
 @Composable
-fun FluxButton(
+fun AuthButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

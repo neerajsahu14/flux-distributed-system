@@ -45,17 +45,7 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    fun onIntent(intent: PostDetailIntent) {
-        when (intent) {
-            is PostDetailIntent.Load -> loadPostDetail(intent.postId)
-            is PostDetailIntent.Retry -> retry(intent.postId)
-            is PostDetailIntent.Like -> onLikeClick()
-            is PostDetailIntent.Bookmark -> onBookmarkClick()
-            is PostDetailIntent.Share -> onShareClick()
-        }
-    }
-
-    private fun loadPostDetail(postId: Long) {
+    fun loadPostDetail(postId: Long) {
         _state.value = _state.value.copy(isLoading = true, error = null)
 
         viewModelScope.launch {
@@ -80,11 +70,11 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    private fun retry(postId: Long) {
+    fun retry(postId: Long) {
         loadPostDetail(postId)
     }
 
-    private fun onLikeClick() {
+    fun onLikeClick() {
         val post = _state.value.post ?: return
         if (_state.value.isInteractionInFlight) return
 
@@ -106,7 +96,7 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    private fun onBookmarkClick() {
+    fun onBookmarkClick() {
         val post = _state.value.post ?: return
         if (_state.value.isInteractionInFlight) return
 
@@ -127,7 +117,7 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    private fun onShareClick() {
+    fun onShareClick() {
         val post = _state.value.post ?: return
         if (_state.value.isInteractionInFlight) return
 

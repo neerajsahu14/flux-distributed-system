@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.feature.auth.presentation
+package com.neerajsahu.flux.androidclient.feature.auth.presentation.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,6 +24,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.KeyboardActions
 import com.neerajsahu.flux.androidclient.R
 import com.neerajsahu.flux.androidclient.core.ui.theme.AndroidClientTheme
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.intent.AuthIntent
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.component.AuthButton
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.component.AuthScreenContainer
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.component.FluxInputField
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.component.FluxLogo
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.viewmodel.AuthState
+import com.neerajsahu.flux.androidclient.feature.auth.presentation.viewmodel.AuthViewModel
 
 @Composable
 fun SignUpScreen(
@@ -44,13 +51,13 @@ fun SignUpScreen(
         password = viewModel.signupPassword.value,
         confirmPassword = viewModel.confirmPassword.value,
         bio = viewModel.bio.value,
-        onUsernameChange = viewModel::onUsernameChange,
-        onFullNameChange = viewModel::onFullNameChange,
-        onEmailChange = viewModel::onSignupEmailChange,
-        onPasswordChange = viewModel::onSignupPasswordChange,
-        onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
-        onBioChange = viewModel::onBioChange,
-        onSignUpClick = viewModel::signup,
+        onUsernameChange = { viewModel.onIntent(AuthIntent.UsernameChanged(it)) },
+        onFullNameChange = { viewModel.onIntent(AuthIntent.FullNameChanged(it)) },
+        onEmailChange = { viewModel.onIntent(AuthIntent.SignupEmailChanged(it)) },
+        onPasswordChange = { viewModel.onIntent(AuthIntent.SignupPasswordChanged(it)) },
+        onConfirmPasswordChange = { viewModel.onIntent(AuthIntent.ConfirmPasswordChanged(it)) },
+        onBioChange = { viewModel.onIntent(AuthIntent.BioChanged(it)) },
+        onSignUpClick = { viewModel.onIntent(AuthIntent.Signup) },
         onNavigateToLogin = onNavigateToLogin
     )
 }
@@ -190,7 +197,7 @@ fun SignUpScreenContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        FluxButton(
+        AuthButton(
             text = "Create Account",
             onClick = onSignUpClick,
             isLoading = state.isLoading
