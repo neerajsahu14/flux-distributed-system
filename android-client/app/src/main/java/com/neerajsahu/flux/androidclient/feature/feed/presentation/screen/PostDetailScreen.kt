@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,6 +46,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.intent.PostDetailIntent
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.viewmodel.PostDetailViewModel
+import androidx.core.net.toUri
 
 @Composable
 fun PostDetailScreen(
@@ -56,7 +58,6 @@ fun PostDetailScreen(
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(postId) {
-        viewModel.loadPostDetail(postId)
         viewModel.onIntent(PostDetailIntent.Load(postId))
     }
 
@@ -82,7 +83,6 @@ fun PostDetailScreen(
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(text = state.error ?: "Error", color = FluxRuby)
-                            Button(onClick = { viewModel.retry(postId) }) {
                             Button(onClick = { viewModel.onIntent(PostDetailIntent.Retry(postId)) }) {
                                 Text("Retry")
                             }
@@ -101,9 +101,6 @@ fun PostDetailScreen(
                                 post = post,
                                 isInteractionInFlight = state.isInteractionInFlight,
                                 onProfileClick = onProfileClick,
-                                onLikeClick = viewModel::onLikeClick,
-                                onBookmarkClick = viewModel::onBookmarkClick,
-                                onShareClick = viewModel::onShareClick
                                 onLikeClick = { viewModel.onIntent(PostDetailIntent.Like) },
                                 onBookmarkClick = { viewModel.onIntent(PostDetailIntent.Bookmark) },
                                 onShareClick = { viewModel.onIntent(PostDetailIntent.Share) }
@@ -284,7 +281,7 @@ fun PostAttachmentsPager(attachments: List<AttachmentUiState>) {
 }
 
 @Composable
-private fun AttachmentPage(
+fun AttachmentPage(
     attachment: AttachmentUiState,
     isActivePage: Boolean
 ) {
@@ -298,7 +295,7 @@ private fun AttachmentPage(
 }
 
 @Composable
-private fun ImageAttachment(attachment: AttachmentUiState) {
+fun ImageAttachment(attachment: AttachmentUiState) {
     SubcomposeAsyncImage(
         model = attachment.contentUrl,
         contentDescription = null,
@@ -311,14 +308,14 @@ private fun ImageAttachment(attachment: AttachmentUiState) {
 }
 
 @Composable
-private fun VideoAttachmentPlayer(
+fun VideoAttachmentPlayer(
     videoUrl: String,
     isActivePage: Boolean
 ) {
     val context = LocalContext.current
     val exoPlayer = remember(videoUrl) {
         ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(Uri.parse(videoUrl)))
+            setMediaItem(MediaItem.fromUri(videoUrl.toUri()))
             prepare()
             playWhenReady = false
         }

@@ -71,7 +71,7 @@ class FeedViewModel @Inject constructor(
 
     fun onIntent(intent: FeedIntent) {
         when (intent) {
-            is FeedIntent.LoadGlobal -> loadGlobalFeed(forceRefresh = intent.forceRefresh)
+            is FeedIntent.LoadGlobal -> on(forceRefresh = intent.forceRefresh)
             is FeedIntent.LoadTimeline -> loadTimelineFeed(forceRefresh = intent.forceRefresh)
             is FeedIntent.LoadMore -> loadMorePosts()
             is FeedIntent.Refresh -> refresh()
@@ -126,7 +126,7 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    private fun loadGlobalFeed(page: Int = 0, size: Int = 20, forceRefresh: Boolean = false) {
+    private fun on(page: Int = 0, size: Int = 20, forceRefresh: Boolean = false) {
         currentFeedType = FeedType.GLOBAL
         startAutoRefresh()
         if (forceRefresh) {
@@ -191,7 +191,7 @@ class FeedViewModel @Inject constructor(
     private fun refresh() {
         _state.value = _state.value.copy(newPostsAvailable = 0)
         when (currentFeedType) {
-            FeedType.GLOBAL -> loadGlobalFeed(forceRefresh = true)
+            FeedType.GLOBAL -> on(forceRefresh = true)
             FeedType.TIMELINE -> loadTimelineFeed(forceRefresh = true)
         }
     }

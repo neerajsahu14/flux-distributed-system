@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.neerajsahu.flux.androidclient.core.network.AppResult
 import com.neerajsahu.flux.androidclient.feature.feed.domain.repository.FeedRepository
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.intent.CreatePostIntent
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.intent.PostDetailIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,6 +43,17 @@ class CreatePostViewModel @Inject constructor(
         _state.update { it.copy(selectedMediaUri = null, errorMessage = null) }
     }
 
+    fun onIntent(intent: CreatePostIntent) {
+        when (intent) {
+            is CreatePostIntent.CaptionChanged -> onCaptionChanged(intent.caption)
+            CreatePostIntent.ClearError -> clearError()
+            CreatePostIntent.ClearSelectedMedia -> clearSelectedMedia()
+            CreatePostIntent.ConsumeSuccess -> consumeSuccess()
+            is CreatePostIntent.MediaSelected -> onMediaSelected(intent.uri)
+            is CreatePostIntent.SetError -> setError(intent.message)
+            is CreatePostIntent.Submit -> createPost(intent.mediaPart)
+        }
+    }
     fun createPost(mediaPart: MultipartBody.Part) {
         val current = _state.value
         if (current.isSubmitting) return

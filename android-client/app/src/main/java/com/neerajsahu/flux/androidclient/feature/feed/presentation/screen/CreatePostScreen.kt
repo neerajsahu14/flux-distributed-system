@@ -67,7 +67,6 @@ fun CreatePostScreen(
 
     val mediaPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri -> viewModel.onMediaSelected(uri?.toString()) }
     ) { uri -> viewModel.onIntent(CreatePostIntent.MediaSelected(uri?.toString())) }
 
     LaunchedEffect(state.errorMessage) {
@@ -166,7 +165,6 @@ fun CreatePostScreen(
                 MediaPreviewCard(
                     uri = previewUri,
                     isVideo = isVideo,
-                    onRemove = viewModel::clearSelectedMedia,
                     onRemove = { viewModel.onIntent(CreatePostIntent.ClearSelectedMedia) },
                     onReplace = {
                         mediaPicker.launch(
@@ -221,7 +219,6 @@ fun CreatePostScreen(
                     }
                     BasicTextField(
                         value = state.caption,
-                        onValueChange = viewModel::onCaptionChanged,
                         onValueChange = { viewModel.onIntent(CreatePostIntent.CaptionChanged(it)) },
                         textStyle = TextStyle(
                             color = FluxText,
