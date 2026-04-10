@@ -1,6 +1,6 @@
 package com.neerajsahu.flux.androidclient.feature.feed.domain.repository
 
-import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.network.AppResult
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.PostDetail
 import kotlinx.coroutines.flow.Flow

@@ -1,11 +1,13 @@
-package com.neerajsahu.flux.androidclient.feature.feed.presentation
+package com.neerajsahu.flux.androidclient.feature.feed.presentation.screen
 
+import android.graphics.Paint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -39,6 +41,9 @@ import com.neerajsahu.flux.androidclient.core.ui.theme.FluxGlassWhite
 import com.neerajsahu.flux.androidclient.core.ui.components.shimmerEffect
 import com.neerajsahu.flux.androidclient.feature.interaction.presentation.components.InteractionBar
 import com.neerajsahu.flux.androidclient.feature.feed.data.mapper.formatFeedDateTime
+import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.intent.FeedIntent
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.viewmodel.FeedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,19 +54,19 @@ fun FeedScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         if (state.posts.isEmpty()) {
-            viewModel.loadGlobalFeed()
+            viewModel.onIntent(FeedIntent.LoadGlobal())
         }
     }
 
     LaunchedEffect(selectedTabIndex) {
         when (selectedTabIndex) {
-            0 -> viewModel.loadGlobalFeed()
-            1 -> viewModel.loadTimelineFeed()
+            0 -> viewModel.onIntent(FeedIntent.LoadGlobal())
+            1 -> viewModel.onIntent(FeedIntent.LoadTimeline())
         }
     }
         Box(
@@ -108,7 +113,7 @@ fun FeedScreen(
                     ) {
                         Button(
                             onClick = {
-                                viewModel.applyNewPosts()
+                                viewModel.onIntent(FeedIntent.ApplyNewPosts)
                                 coroutineScope.launch {
                                     listState.animateScrollToItem(0)
                                 }
@@ -145,7 +150,7 @@ fun FeedScreen(
                                     color = FluxRuby,
                                     modifier = Modifier.padding(24.dp)
                                 )
-                                TextButton(onClick = viewModel::refresh) {
+                                TextButton(onClick = { viewModel.onIntent(FeedIntent.Refresh) }) {
                                     Text("Retry", color = FluxCyan)
                                 }
                             }
@@ -154,7 +159,7 @@ fun FeedScreen(
                     else -> {
                         PullToRefreshBox(
                             isRefreshing = state.isRefreshing,
-                            onRefresh = { viewModel.refresh() },
+                            onRefresh = { viewModel.onIntent(FeedIntent.Refresh) },
                             modifier = Modifier.fillMaxSize()
                         ) {
                             LazyColumn(
@@ -167,7 +172,7 @@ fun FeedScreen(
                                     // Pagination trigger
                                     if (index == state.posts.lastIndex && state.hasMore) {
                                         LaunchedEffect(index) {
-                                            viewModel.loadMorePosts()
+                                            viewModel.onIntent(FeedIntent.LoadMore)
                                         }
                                     }
                                     
@@ -182,9 +187,9 @@ fun FeedScreen(
                                             onProfileClick = onProfileClick,
                                             onPostClick = onPostClick,
                                             isInteractionInFlight = state.interactionInFlightPostIds.contains(post.id),
-                                            onLikeClick = { viewModel.onLikeClick(post.id) },
-                                            onBookmarkClick = { viewModel.onBookmarkClick(post.id) },
-                                            onShareClick = { viewModel.onShareClick(post.id) }
+                                            onLikeClick = { viewModel.onIntent(FeedIntent.Like(post.id)) },
+                                            onBookmarkClick = { viewModel.onIntent(FeedIntent.Bookmark(post.id)) },
+                                            onShareClick = { viewModel.onIntent(FeedIntent.Share(post.id)) }
                                         )
                                     }
                                 }
@@ -231,7 +236,7 @@ fun FeedTabItem(
     // 1. Cache the Paint object to prevent GC thrashing during draw phase
     val density = LocalDensity.current
     val glowPaint = remember(density) {
-        android.graphics.Paint().apply {
+        Paint().apply {
             isAntiAlias = true
             color = android.graphics.Color.TRANSPARENT
             // Adjust radius (20dp -> 12dp) and add alpha (0.6f) to soften the core shadow
@@ -294,7 +299,7 @@ fun FeedTabItem(
 
 @Composable
 fun FluxFeedPostCard(
-    post: com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post,
+    post: Post,
     isLeftAligned: Boolean,
     onProfileClick: (Long) -> Unit,
     onPostClick: (Long) -> Unit,

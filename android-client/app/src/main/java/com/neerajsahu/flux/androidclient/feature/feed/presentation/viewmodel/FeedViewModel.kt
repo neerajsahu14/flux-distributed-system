@@ -1,15 +1,18 @@
-package com.neerajsahu.flux.androidclient.feature.feed.presentation
+package com.neerajsahu.flux.androidclient.feature.feed.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.network.AppResult
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
 import com.neerajsahu.flux.androidclient.feature.feed.domain.repository.FeedRepository
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.intent.FeedIntent
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.model.PostInteractionState
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionRepository
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionSyncSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -66,11 +69,24 @@ class FeedViewModel @Inject constructor(
         }
     }
 
+    fun onIntent(intent: FeedIntent) {
+        when (intent) {
+            is FeedIntent.LoadGlobal -> loadGlobalFeed(forceRefresh = intent.forceRefresh)
+            is FeedIntent.LoadTimeline -> loadTimelineFeed(forceRefresh = intent.forceRefresh)
+            is FeedIntent.LoadMore -> loadMorePosts()
+            is FeedIntent.Refresh -> refresh()
+            is FeedIntent.Like -> onLikeClick(intent.postId)
+            is FeedIntent.Bookmark -> onBookmarkClick(intent.postId)
+            is FeedIntent.Share -> onShareClick(intent.postId)
+            is FeedIntent.ApplyNewPosts -> applyNewPosts()
+        }
+    }
+
     private fun startAutoRefresh() {
         autoRefreshJob?.cancel()
         autoRefreshJob = viewModelScope.launch {
             while (true) {
-                kotlinx.coroutines.delay(5 * 60 * 1000L) // 5 minutes
+                delay(5 * 60 * 1000L) // 5 minutes
                 // Fetch latest in background silently
                 if (currentFeedType == FeedType.GLOBAL) {
                     silentSync { repository.getGlobalFeed(0, 20, forceRefresh = true) }
@@ -81,7 +97,7 @@ class FeedViewModel @Inject constructor(
         }
     }
     
-    private fun silentSync(networkCall: suspend () -> kotlinx.coroutines.flow.Flow<AppResult<List<Post>>>) {
+    private fun silentSync(networkCall: suspend () -> Flow<AppResult<List<Post>>>) {
         viewModelScope.launch {
             networkCall().collect { result ->
                 if (result is AppResult.Success) {
@@ -103,14 +119,14 @@ class FeedViewModel @Inject constructor(
         }
     }
     
-    fun applyNewPosts() {
+    private fun applyNewPosts() {
         if (_state.value.newPostsAvailable > 0) {
             refresh()
             _state.value = _state.value.copy(newPostsAvailable = 0)
         }
     }
 
-    fun loadGlobalFeed(page: Int = 0, size: Int = 20, forceRefresh: Boolean = false) {
+    private fun loadGlobalFeed(page: Int = 0, size: Int = 20, forceRefresh: Boolean = false) {
         currentFeedType = FeedType.GLOBAL
         startAutoRefresh()
         if (forceRefresh) {
@@ -121,7 +137,7 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    fun loadTimelineFeed(page: Int = 0, size: Int = 20, forceRefresh: Boolean = false) {
+    private fun loadTimelineFeed(page: Int = 0, size: Int = 20, forceRefresh: Boolean = false) {
         currentFeedType = FeedType.TIMELINE
         startAutoRefresh()
         if (forceRefresh) {
@@ -132,7 +148,7 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    fun loadMorePosts(size: Int = 20) {
+    private fun loadMorePosts(size: Int = 20) {
         val nextPage = _state.value.currentPage + 1
         _state.value = _state.value.copy(isLoadingMore = true)
 
@@ -172,7 +188,7 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    fun refresh() {
+    private fun refresh() {
         _state.value = _state.value.copy(newPostsAvailable = 0)
         when (currentFeedType) {
             FeedType.GLOBAL -> loadGlobalFeed(forceRefresh = true)
@@ -180,7 +196,7 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    fun onLikeClick(postId: Long) {
+    private fun onLikeClick(postId: Long) {
         val post = _state.value.posts.firstOrNull { it.id == postId } ?: return
         if (_state.value.interactionInFlightPostIds.contains(postId)) return
 
@@ -219,7 +235,7 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    fun onBookmarkClick(postId: Long) {
+    private fun onBookmarkClick(postId: Long) {
         val post = _state.value.posts.firstOrNull { it.id == postId } ?: return
         if (_state.value.interactionInFlightPostIds.contains(postId)) return
 
@@ -245,7 +261,7 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    fun onShareClick(postId: Long) {
+    private fun onShareClick(postId: Long) {
         if (_state.value.interactionInFlightPostIds.contains(postId)) return
 
         mutatePost(postId) { it.copy(shareCount = it.shareCount + 1) }
@@ -268,7 +284,7 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    private fun loadFeed(page: Int, size: Int, forceRefresh: Boolean, networkCall: suspend () -> kotlinx.coroutines.flow.Flow<AppResult<List<Post>>>) {
+    private fun loadFeed(page: Int, size: Int, forceRefresh: Boolean, networkCall: suspend () -> Flow<AppResult<List<Post>>>) {
         feedJob?.cancel()
         feedJob = viewModelScope.launch {
             if (!forceRefresh) {

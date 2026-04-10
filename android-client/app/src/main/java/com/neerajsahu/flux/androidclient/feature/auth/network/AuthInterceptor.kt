@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.core.network
+package com.neerajsahu.flux.androidclient.feature.auth.network
 
 import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
 import okhttp3.Interceptor

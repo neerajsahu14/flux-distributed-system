@@ -1,13 +1,13 @@
 package com.neerajsahu.flux.androidclient.feature.feed.data.repository
 
-import com.neerajsahu.flux.androidclient.core.utils.AppResult
-import com.neerajsahu.flux.androidclient.core.utils.ErrorParser
+import com.neerajsahu.flux.androidclient.core.network.AppResult
+import com.neerajsahu.flux.androidclient.core.network.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostDao
+import com.neerajsahu.flux.androidclient.feature.feed.data.mapper.toDomain
+import com.neerajsahu.flux.androidclient.feature.feed.data.mapper.toEntity
 import com.neerajsahu.flux.androidclient.feature.feed.data.remote.FeedApi
 import com.neerajsahu.flux.androidclient.feature.feed.data.remote.dto.PostResponseDto
 import com.neerajsahu.flux.androidclient.feature.feed.data.remote.dto.UpdatePostRequestDto
-import com.neerajsahu.flux.androidclient.feature.feed.data.remote.dto.toDomain
-import com.neerajsahu.flux.androidclient.feature.feed.data.remote.dto.toEntity
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.PostDetail
 import com.neerajsahu.flux.androidclient.feature.feed.domain.repository.FeedRepository

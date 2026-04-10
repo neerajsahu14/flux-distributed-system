@@ -1,7 +1,7 @@
 package com.neerajsahu.flux.androidclient.core.di
 
 import com.neerajsahu.flux.androidclient.BuildConfig
-import com.neerajsahu.flux.androidclient.core.network.AuthInterceptor
+import com.neerajsahu.flux.androidclient.feature.auth.network.AuthInterceptor
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.AuthApi
 import dagger.Module
 import dagger.Provides

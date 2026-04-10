@@ -1,8 +1,8 @@
 package com.neerajsahu.flux.androidclient.feature.auth.data.repository
 
 import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
-import com.neerajsahu.flux.androidclient.core.utils.AppResult
-import com.neerajsahu.flux.androidclient.core.utils.ErrorParser
+import com.neerajsahu.flux.androidclient.core.network.AppResult
+import com.neerajsahu.flux.androidclient.core.network.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.auth.data.local.UserDao
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.AuthApi
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.LoginRequestDto

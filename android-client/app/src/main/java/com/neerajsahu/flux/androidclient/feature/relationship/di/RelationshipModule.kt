@@ -2,6 +2,7 @@ package com.neerajsahu.flux.androidclient.feature.relationship.di
 
 import android.content.Context
 import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
+import com.neerajsahu.flux.androidclient.core.network.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsDao
 import com.neerajsahu.flux.androidclient.feature.relationship.data.remote.RelationshipApi
 import com.neerajsahu.flux.androidclient.feature.relationship.data.repository.RelationshipRepositoryImpl
@@ -31,7 +32,7 @@ object RelationshipModule {
         profileStatsDao: ProfileStatsDao,
         @ApplicationContext context: Context,
         tokenManager: TokenManager,
-        errorParser: com.neerajsahu.flux.androidclient.core.utils.ErrorParser
+        errorParser: ErrorParser
     ): RelationshipRepository {
         return RelationshipRepositoryImpl(api, profileStatsDao, errorParser, context, tokenManager)
     }

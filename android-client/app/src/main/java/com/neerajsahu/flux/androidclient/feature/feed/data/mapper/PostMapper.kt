@@ -1,9 +1,13 @@
 package com.neerajsahu.flux.androidclient.feature.feed.data.mapper
 
+import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostEntity
 import com.neerajsahu.flux.androidclient.feature.feed.data.remote.dto.AttachmentResponseDto
 import com.neerajsahu.flux.androidclient.feature.feed.data.remote.dto.PostDetailResponseDto
+import com.neerajsahu.flux.androidclient.feature.feed.data.remote.dto.PostResponseDto
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Attachment
+import com.neerajsahu.flux.androidclient.feature.feed.domain.model.FeedAuthor
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.MediaType
+import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.PostDetail
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.model.AttachmentUiState
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.model.PostUiState
@@ -116,3 +120,88 @@ fun formatFeedDateTime(isoString: String): String {
         ""
     }
 }
+
+
+
+fun PostResponseDto.toEntity(scope: String): PostEntity {
+    return PostEntity(
+        id = id,
+        scope = scope,
+        caption = caption,
+        imageUrl = imageUrl,
+        authorId = author.id,
+        authorUsername = author.username,
+        authorProfilePicUrl = author.profilePicUrl,
+        createdAt = createdAt,
+        likeCount = likeCount,
+        shareCount = shareCount ?: 0,
+        isLiked = isLiked ?: false,
+        isBookmarked = isBookmarked ?: false
+    )
+}
+
+fun PostEntity.toDomain(): Post {
+    return Post(
+        id = id,
+        caption = caption,
+        imageUrl = imageUrl,
+        author = FeedAuthor(
+            id = authorId,
+            username = authorUsername,
+            profilePicUrl = authorProfilePicUrl
+        ),
+        createdAt = createdAt,
+        likeCount = likeCount,
+        shareCount = shareCount,
+        isLiked = isLiked,
+        isBookmarked = isBookmarked
+    )
+}
+
+fun PostResponseDto.toDomain(): Post {
+    return Post(
+        id = id,
+        caption = caption,
+        imageUrl = imageUrl,
+        author = FeedAuthor(
+            id = author.id,
+            username = author.username,
+            profilePicUrl = author.profilePicUrl
+        ),
+        createdAt = createdAt,
+        likeCount = likeCount,
+        shareCount = shareCount ?: 0,
+        isLiked = isLiked ?: false,
+        isBookmarked = isBookmarked ?: false
+    )
+}
+
+fun PostDetailResponseDto.toDomain(): PostDetail {
+    return PostDetail(
+        id = id,
+        caption = caption,
+        imageUrl = imageUrl,
+        contentUrl = contentUrl,
+        mediaType = mediaType,
+        author = FeedAuthor(
+            id = author.id,
+            username = author.username,
+            profilePicUrl = author.profilePicUrl
+        ),
+        createdAt = createdAt,
+        likeCount = likeCount,
+        shareCount = shareCount,
+        isLiked = isLiked,
+        isBookmarked = isBookmarked,
+        attachments = attachments.map {
+            Attachment(
+                id = it.id,
+                contentUrl = it.contentUrl,
+                thumbnailUrl = it.thumbnailUrl,
+                mediaType = it.mediaType,
+                displayOrder = it.displayOrder
+            )
+        }
+    )
+}
+

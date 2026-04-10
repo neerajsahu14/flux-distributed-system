@@ -8,6 +8,7 @@ import com.neerajsahu.flux.androidclient.feature.interaction.data.repository.Roo
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionRepository
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionSyncSource
 import android.content.Context
+import com.neerajsahu.flux.androidclient.core.network.ErrorParser
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,7 +31,7 @@ object InteractionModule {
     @Singleton
     fun provideInteractionRepository(
         @ApplicationContext context: Context,
-        errorParser: com.neerajsahu.flux.androidclient.core.utils.ErrorParser,
+        errorParser: ErrorParser,
         interactionApi: InteractionApi,
         interactionDao: InteractionDao,
         postDao: PostDao

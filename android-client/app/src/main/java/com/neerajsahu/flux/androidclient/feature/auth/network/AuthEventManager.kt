@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.core.network
+package com.neerajsahu.flux.androidclient.feature.auth.network
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow

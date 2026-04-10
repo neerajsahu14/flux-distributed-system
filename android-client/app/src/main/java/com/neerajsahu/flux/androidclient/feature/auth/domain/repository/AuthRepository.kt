@@ -1,6 +1,6 @@
 package com.neerajsahu.flux.androidclient.feature.auth.domain.repository
 
-import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.network.AppResult
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.RegisterRequestDto
 import com.neerajsahu.flux.androidclient.feature.auth.domain.model.User
 import kotlinx.coroutines.flow.Flow

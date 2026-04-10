@@ -1,6 +1,6 @@
 package com.neerajsahu.flux.androidclient.feature.interaction.domain.repository
 
-import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.network.AppResult
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
 
 data class InteractionActionResult(

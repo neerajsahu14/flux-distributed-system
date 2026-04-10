@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.feature.feed.presentation
+package com.neerajsahu.flux.androidclient.feature.feed.presentation.screen
 
 import android.content.Context
 import android.database.Cursor
@@ -7,13 +7,9 @@ import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,8 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,7 +32,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -46,9 +39,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.intent.CreatePostIntent
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.component.MediaPreviewCard
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.viewmodel.CreatePostViewModel
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -73,16 +67,19 @@ fun CreatePostScreen(
 
     val mediaPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri -> viewModel.onMediaSelected(uri?.toString()) }
+    ) { uri -> viewModel.onIntent(CreatePostIntent.MediaSelected(uri?.toString())) }
 
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
             snackbarHostState.showSnackbar(it)
-            viewModel.clearError()
+            viewModel.onIntent(CreatePostIntent.ClearError)
         }
     }
     LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess) { viewModel.consumeSuccess(); onPostCreated() }
+        if (state.isSuccess) {
+            viewModel.onIntent(CreatePostIntent.ConsumeSuccess)
+            onPostCreated()
+        }
     }
 
     Box(
@@ -166,7 +163,7 @@ fun CreatePostScreen(
                 MediaPreviewCard(
                     uri = previewUri,
                     isVideo = isVideo,
-                    onRemove = viewModel::clearSelectedMedia,
+                    onRemove = { viewModel.onIntent(CreatePostIntent.ClearSelectedMedia) },
                     onReplace = {
                         mediaPicker.launch(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
@@ -220,7 +217,7 @@ fun CreatePostScreen(
                     }
                     BasicTextField(
                         value = state.caption,
-                        onValueChange = viewModel::onCaptionChanged,
+                        onValueChange = { viewModel.onIntent(CreatePostIntent.CaptionChanged(it)) },
                         textStyle = TextStyle(
                             color = FluxText,
                             fontSize = 15.sp,
@@ -243,8 +240,11 @@ fun CreatePostScreen(
                 onClick = {
                     val uri = state.selectedMediaUri?.let(Uri::parse)
                     val mediaPart = uri?.let { context.toMediaMultipartPart(it) }
-                    if (mediaPart != null) viewModel.createPost(mediaPart)
-                    else viewModel.setError("Unable to read selected media.")
+                    if (mediaPart != null) {
+                        viewModel.onIntent(CreatePostIntent.Submit(mediaPart))
+                    } else {
+                        viewModel.onIntent(CreatePostIntent.SetError("Unable to read selected media."))
+                    }
                 }
             )
 

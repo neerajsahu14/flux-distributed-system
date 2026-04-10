@@ -25,15 +25,14 @@ import com.neerajsahu.flux.androidclient.core.ui.theme.FluxBackgroundDark
 import com.neerajsahu.flux.androidclient.core.ui.theme.FluxCyan
 import com.neerajsahu.flux.androidclient.feature.auth.presentation.LoginScreen
 import com.neerajsahu.flux.androidclient.feature.auth.presentation.SignUpScreen
-import com.neerajsahu.flux.androidclient.feature.feed.presentation.CreatePostScreen
-import com.neerajsahu.flux.androidclient.feature.feed.presentation.FeedScreen
-import com.neerajsahu.flux.androidclient.feature.feed.presentation.PostDetailScreen
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.screen.CreatePostScreen
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.screen.FeedScreen
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.screen.PostDetailScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ConnectionScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.EditProfileScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ExploreScreen
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.ProfileScreen
 import kotlinx.coroutines.delay
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Composable

@@ -1,10 +1,11 @@
-package com.neerajsahu.flux.androidclient.feature.feed.presentation
+package com.neerajsahu.flux.androidclient.feature.feed.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.network.AppResult
 import com.neerajsahu.flux.androidclient.feature.feed.data.mapper.toUiState
 import com.neerajsahu.flux.androidclient.feature.feed.domain.repository.FeedRepository
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.intent.PostDetailIntent
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.model.PostUiState
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.model.PostInteractionState
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionRepository
@@ -44,7 +45,17 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    fun loadPostDetail(postId: Long) {
+    fun onIntent(intent: PostDetailIntent) {
+        when (intent) {
+            is PostDetailIntent.Load -> loadPostDetail(intent.postId)
+            is PostDetailIntent.Retry -> retry(intent.postId)
+            is PostDetailIntent.Like -> onLikeClick()
+            is PostDetailIntent.Bookmark -> onBookmarkClick()
+            is PostDetailIntent.Share -> onShareClick()
+        }
+    }
+
+    private fun loadPostDetail(postId: Long) {
         _state.value = _state.value.copy(isLoading = true, error = null)
 
         viewModelScope.launch {
@@ -69,11 +80,11 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    fun retry(postId: Long) {
+    private fun retry(postId: Long) {
         loadPostDetail(postId)
     }
 
-    fun onLikeClick() {
+    private fun onLikeClick() {
         val post = _state.value.post ?: return
         if (_state.value.isInteractionInFlight) return
 
@@ -95,7 +106,7 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    fun onBookmarkClick() {
+    private fun onBookmarkClick() {
         val post = _state.value.post ?: return
         if (_state.value.isInteractionInFlight) return
 
@@ -116,7 +127,7 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    fun onShareClick() {
+    private fun onShareClick() {
         val post = _state.value.post ?: return
         if (_state.value.isInteractionInFlight) return
 

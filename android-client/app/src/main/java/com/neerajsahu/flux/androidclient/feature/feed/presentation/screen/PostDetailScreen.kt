@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.feature.feed.presentation
+package com.neerajsahu.flux.androidclient.feature.feed.presentation.screen
 
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -42,6 +43,8 @@ import com.neerajsahu.flux.androidclient.feature.feed.presentation.model.PostUiS
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.intent.PostDetailIntent
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.viewmodel.PostDetailViewModel
 
 @Composable
 fun PostDetailScreen(
@@ -53,7 +56,7 @@ fun PostDetailScreen(
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(postId) {
-        viewModel.loadPostDetail(postId)
+        viewModel.onIntent(PostDetailIntent.Load(postId))
     }
 
     Box(
@@ -78,7 +81,7 @@ fun PostDetailScreen(
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(text = state.error ?: "Error", color = FluxRuby)
-                            Button(onClick = { viewModel.retry(postId) }) {
+                            Button(onClick = { viewModel.onIntent(PostDetailIntent.Retry(postId)) }) {
                                 Text("Retry")
                             }
                         }
@@ -96,9 +99,9 @@ fun PostDetailScreen(
                                 post = post,
                                 isInteractionInFlight = state.isInteractionInFlight,
                                 onProfileClick = onProfileClick,
-                                onLikeClick = viewModel::onLikeClick,
-                                onBookmarkClick = viewModel::onBookmarkClick,
-                                onShareClick = viewModel::onShareClick
+                                onLikeClick = { viewModel.onIntent(PostDetailIntent.Like) },
+                                onBookmarkClick = { viewModel.onIntent(PostDetailIntent.Bookmark) },
+                                onShareClick = { viewModel.onIntent(PostDetailIntent.Share) }
                             )
                         }
                     }
@@ -398,7 +401,7 @@ fun DetailedInteractionBar(
 
 @Composable
 fun NeomorphicIconButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String? = null,
     color: Color = Color.White.copy(alpha = 0.7f),
     enabled: Boolean = true,

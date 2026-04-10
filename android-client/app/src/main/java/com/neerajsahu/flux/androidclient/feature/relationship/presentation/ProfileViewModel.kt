@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
-import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.network.AppResult
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post
 import com.neerajsahu.flux.androidclient.feature.feed.domain.repository.FeedRepository
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.ProfileStats

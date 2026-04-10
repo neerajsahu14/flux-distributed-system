@@ -1,9 +1,10 @@
-package com.neerajsahu.flux.androidclient.feature.feed.presentation
+package com.neerajsahu.flux.androidclient.feature.feed.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neerajsahu.flux.androidclient.core.utils.AppResult
+import com.neerajsahu.flux.androidclient.core.network.AppResult
 import com.neerajsahu.flux.androidclient.feature.feed.domain.repository.FeedRepository
+import com.neerajsahu.flux.androidclient.feature.feed.presentation.intent.CreatePostIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,19 +30,31 @@ class CreatePostViewModel @Inject constructor(
     private val _state = MutableStateFlow(CreatePostUiState())
     val state = _state.asStateFlow()
 
-    fun onCaptionChanged(caption: String) {
+    fun onIntent(intent: CreatePostIntent) {
+        when (intent) {
+            is CreatePostIntent.CaptionChanged -> onCaptionChanged(intent.caption)
+            is CreatePostIntent.MediaSelected -> onMediaSelected(intent.uri)
+            is CreatePostIntent.ClearSelectedMedia -> clearSelectedMedia()
+            is CreatePostIntent.Submit -> createPost(intent.mediaPart)
+            is CreatePostIntent.ClearError -> clearError()
+            is CreatePostIntent.SetError -> setError(intent.message)
+            is CreatePostIntent.ConsumeSuccess -> consumeSuccess()
+        }
+    }
+
+    private fun onCaptionChanged(caption: String) {
         _state.update { it.copy(caption = caption, errorMessage = null) }
     }
 
-    fun onMediaSelected(uri: String?) {
+    private fun onMediaSelected(uri: String?) {
         _state.update { it.copy(selectedMediaUri = uri, errorMessage = null) }
     }
 
-    fun clearSelectedMedia() {
+    private fun clearSelectedMedia() {
         _state.update { it.copy(selectedMediaUri = null, errorMessage = null) }
     }
 
-    fun createPost(mediaPart: MultipartBody.Part) {
+    private fun createPost(mediaPart: MultipartBody.Part) {
         val current = _state.value
         if (current.isSubmitting) return
 
@@ -83,15 +96,15 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
-    fun clearError() {
+    private fun clearError() {
         _state.update { it.copy(errorMessage = null) }
     }
 
-    fun setError(message: String) {
+    private fun setError(message: String) {
         _state.update { it.copy(errorMessage = message) }
     }
 
-    fun consumeSuccess() {
+    private fun consumeSuccess() {
         _state.update { current ->
             if (!current.isSuccess) current else current.copy(isSuccess = false)
         }

@@ -1,5 +1,6 @@
 package com.neerajsahu.flux.androidclient.feature.feed.di
 
+import com.neerajsahu.flux.androidclient.core.network.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostDao
 import com.neerajsahu.flux.androidclient.feature.feed.data.remote.FeedApi
 import com.neerajsahu.flux.androidclient.feature.feed.data.repository.FeedRepositoryImpl
@@ -26,7 +27,7 @@ object FeedModule {
     fun provideFeedRepository(
         feedApi: FeedApi,
         postDao: PostDao,
-        errorParser: com.neerajsahu.flux.androidclient.core.utils.ErrorParser
+        errorParser: ErrorParser
     ): FeedRepository {
         return FeedRepositoryImpl(feedApi, postDao, errorParser)
     }

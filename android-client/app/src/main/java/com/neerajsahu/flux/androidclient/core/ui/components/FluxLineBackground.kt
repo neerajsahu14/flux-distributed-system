@@ -1,25 +1,20 @@
 package com.neerajsahu.flux.androidclient.core.ui.components
 
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.neerajsahu.flux.androidclient.core.ui.theme.*
+import com.neerajsahu.flux.androidclient.core.ui.theme.FluxLineGradient
 import kotlin.math.sin
 
 @Composable
@@ -55,7 +50,7 @@ fun FluxLineBackground(modifier: Modifier = Modifier) {
             style = Stroke(width = 20f, cap = androidx.compose.ui.graphics.StrokeCap.Round),
             alpha = 0.1f
         )
-        
+
         // Mid glow
         drawPath(
             path = path,
@@ -70,29 +65,6 @@ fun FluxLineBackground(modifier: Modifier = Modifier) {
             brush = Brush.verticalGradient(FluxLineGradient),
             style = Stroke(width = 2f, cap = androidx.compose.ui.graphics.StrokeCap.Round),
             alpha = 0.8f
-        )
-    }
-}
-
-@Composable
-fun GlassCard(
-    modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(16.dp),
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(
-                Brush.linearGradient(
-                    colors = listOf(FluxGlassWhite, FluxGlassWhite.copy(alpha = 0.05f))
-                )
-            )
-            .border(0.5.dp, FluxGlassBorder, RoundedCornerShape(24.dp))
-    ) {
-        Column(
-            modifier = Modifier.padding(contentPadding),
-            content = content
         )
     }
 }
