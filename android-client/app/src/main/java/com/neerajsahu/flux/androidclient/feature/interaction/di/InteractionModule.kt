@@ -8,7 +8,7 @@ import com.neerajsahu.flux.androidclient.feature.interaction.data.repository.Roo
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionRepository
 import com.neerajsahu.flux.androidclient.feature.interaction.domain.repository.InteractionSyncSource
 import android.content.Context
-import com.neerajsahu.flux.androidclient.core.network.ErrorParser
+import com.neerajsahu.flux.androidclient.common.ErrorParser
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -3,7 +3,7 @@ package com.neerajsahu.flux.androidclient.feature.relationship.presentation.view
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
-import com.neerajsahu.flux.androidclient.core.network.AppResult
+import com.neerajsahu.flux.androidclient.common.AppResult
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.RelationshipUser
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.repository.RelationshipRepository
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.intent.ExploreIntent

@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
 import com.neerajsahu.flux.androidclient.feature.auth.network.AuthEventManager
 import com.neerajsahu.flux.androidclient.core.network.ConnectivityObserver
-import com.neerajsahu.flux.androidclient.core.network.AppResult
+import com.neerajsahu.flux.androidclient.common.AppResult
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.ProfileStats
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.repository.RelationshipRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

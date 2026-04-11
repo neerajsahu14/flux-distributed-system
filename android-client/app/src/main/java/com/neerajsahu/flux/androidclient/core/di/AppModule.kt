@@ -8,7 +8,7 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import com.neerajsahu.flux.androidclient.core.database.FluxDatabase
 import com.neerajsahu.flux.androidclient.core.network.ConnectivityObserver
-import com.neerajsahu.flux.androidclient.core.network.ErrorParser
+import com.neerajsahu.flux.androidclient.common.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.auth.data.local.UserDao
 import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostDao
 import com.neerajsahu.flux.androidclient.feature.interaction.data.local.InteractionDao

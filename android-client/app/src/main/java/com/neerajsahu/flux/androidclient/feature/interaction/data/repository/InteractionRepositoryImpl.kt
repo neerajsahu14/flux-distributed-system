@@ -7,8 +7,8 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.neerajsahu.flux.androidclient.core.network.AppResult
-import com.neerajsahu.flux.androidclient.core.network.ErrorParser
+import com.neerajsahu.flux.androidclient.common.AppResult
+import com.neerajsahu.flux.androidclient.common.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostDao
 import com.neerajsahu.flux.androidclient.feature.feed.data.mapper.toDomain
 import com.neerajsahu.flux.androidclient.feature.feed.domain.model.Post

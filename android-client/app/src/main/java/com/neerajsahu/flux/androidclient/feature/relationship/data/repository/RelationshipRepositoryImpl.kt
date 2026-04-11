@@ -3,8 +3,8 @@ package com.neerajsahu.flux.androidclient.feature.relationship.data.repository
 import android.content.Context
 import androidx.work.*
 import com.neerajsahu.flux.androidclient.core.datastore.TokenManager
-import com.neerajsahu.flux.androidclient.core.network.AppResult
-import com.neerajsahu.flux.androidclient.core.network.ErrorParser
+import com.neerajsahu.flux.androidclient.common.AppResult
+import com.neerajsahu.flux.androidclient.common.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.PendingActionEntity
 import com.neerajsahu.flux.androidclient.feature.relationship.data.local.ProfileStatsDao
 import com.neerajsahu.flux.androidclient.feature.relationship.data.remote.RelationshipApi

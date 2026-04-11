@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.core.network
+package com.neerajsahu.flux.androidclient.common
 
 import android.content.Context
 import com.neerajsahu.flux.androidclient.R

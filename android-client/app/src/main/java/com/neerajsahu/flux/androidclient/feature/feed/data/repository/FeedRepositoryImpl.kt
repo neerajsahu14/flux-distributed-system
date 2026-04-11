@@ -1,7 +1,7 @@
 package com.neerajsahu.flux.androidclient.feature.feed.data.repository
 
-import com.neerajsahu.flux.androidclient.core.network.AppResult
-import com.neerajsahu.flux.androidclient.core.network.ErrorParser
+import com.neerajsahu.flux.androidclient.common.AppResult
+import com.neerajsahu.flux.androidclient.common.ErrorParser
 import com.neerajsahu.flux.androidclient.feature.feed.data.local.PostDao
 import com.neerajsahu.flux.androidclient.feature.feed.data.mapper.toDomain
 import com.neerajsahu.flux.androidclient.feature.feed.data.mapper.toEntity

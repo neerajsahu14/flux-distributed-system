@@ -3,7 +3,7 @@ package com.neerajsahu.flux.androidclient.feature.relationship.presentation.view
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neerajsahu.flux.androidclient.core.network.AppResult
+import com.neerajsahu.flux.androidclient.common.AppResult
 import com.neerajsahu.flux.androidclient.feature.auth.domain.model.User
 import com.neerajsahu.flux.androidclient.feature.auth.domain.repository.AuthRepository
 import com.neerajsahu.flux.androidclient.feature.relationship.presentation.intent.EditProfileIntent

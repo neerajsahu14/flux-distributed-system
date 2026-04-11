@@ -2,10 +2,9 @@ package com.neerajsahu.flux.androidclient.feature.feed.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neerajsahu.flux.androidclient.core.network.AppResult
+import com.neerajsahu.flux.androidclient.common.AppResult
 import com.neerajsahu.flux.androidclient.feature.feed.domain.repository.FeedRepository
 import com.neerajsahu.flux.androidclient.feature.feed.presentation.intent.CreatePostIntent
-import com.neerajsahu.flux.androidclient.feature.feed.presentation.intent.PostDetailIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

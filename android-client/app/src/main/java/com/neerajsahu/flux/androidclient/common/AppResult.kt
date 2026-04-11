@@ -1,4 +1,4 @@
-package com.neerajsahu.flux.androidclient.core.network
+package com.neerajsahu.flux.androidclient.common
 
 sealed class AppResult<out T> {
     data class Success<out T>(val data: T) : AppResult<T>()

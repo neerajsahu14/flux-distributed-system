@@ -4,7 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neerajsahu.flux.androidclient.core.network.AppResult
+import com.neerajsahu.flux.androidclient.common.AppResult
 import com.neerajsahu.flux.androidclient.feature.auth.data.remote.dto.RegisterRequestDto
 import com.neerajsahu.flux.androidclient.feature.auth.domain.repository.AuthRepository
 import com.neerajsahu.flux.androidclient.feature.auth.presentation.intent.AuthIntent

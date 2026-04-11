@@ -1,6 +1,6 @@
 package com.neerajsahu.flux.androidclient.feature.relationship.domain.repository
 
-import com.neerajsahu.flux.androidclient.core.network.AppResult
+import com.neerajsahu.flux.androidclient.common.AppResult
 import com.neerajsahu.flux.androidclient.feature.relationship.data.remote.dto.*
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.ProfileStats
 import com.neerajsahu.flux.androidclient.feature.relationship.domain.model.RelationshipUser
