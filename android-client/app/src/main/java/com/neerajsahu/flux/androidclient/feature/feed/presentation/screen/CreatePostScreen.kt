@@ -72,12 +72,10 @@ fun CreatePostScreen(
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
             snackbarHostState.showSnackbar(it)
-            viewModel.clearError()
             viewModel.onIntent(CreatePostIntent.ClearError)
         }
     }
     LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess) { viewModel.consumeSuccess(); onPostCreated() }
         if (state.isSuccess) {
             viewModel.onIntent(CreatePostIntent.ConsumeSuccess)
             onPostCreated()
@@ -242,8 +240,6 @@ fun CreatePostScreen(
                 onClick = {
                     val uri = state.selectedMediaUri?.let(Uri::parse)
                     val mediaPart = uri?.let { context.toMediaMultipartPart(it) }
-                    if (mediaPart != null) viewModel.createPost(mediaPart)
-                    else viewModel.setError("Unable to read selected media.")
                     if (mediaPart != null) {
                         viewModel.onIntent(CreatePostIntent.Submit(mediaPart))
                     } else {

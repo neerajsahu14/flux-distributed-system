@@ -30,15 +30,15 @@ class CreatePostViewModel @Inject constructor(
     private val _state = MutableStateFlow(CreatePostUiState())
     val state = _state.asStateFlow()
 
-    fun onCaptionChanged(caption: String) {
+    private fun onCaptionChanged(caption: String) {
         _state.update { it.copy(caption = caption, errorMessage = null) }
     }
 
-    fun onMediaSelected(uri: String?) {
+    private fun onMediaSelected(uri: String?) {
         _state.update { it.copy(selectedMediaUri = uri, errorMessage = null) }
     }
 
-    fun clearSelectedMedia() {
+    private fun clearSelectedMedia() {
         _state.update { it.copy(selectedMediaUri = null, errorMessage = null) }
     }
 
@@ -53,7 +53,7 @@ class CreatePostViewModel @Inject constructor(
             is CreatePostIntent.Submit -> createPost(intent.mediaPart)
         }
     }
-    fun createPost(mediaPart: MultipartBody.Part) {
+    private fun createPost(mediaPart: MultipartBody.Part) {
         val current = _state.value
         if (current.isSubmitting) return
 
@@ -95,15 +95,15 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
-    fun clearError() {
+    private fun clearError() {
         _state.update { it.copy(errorMessage = null) }
     }
 
-    fun setError(message: String) {
+    private fun setError(message: String) {
         _state.update { it.copy(errorMessage = message) }
     }
 
-    fun consumeSuccess() {
+    private fun consumeSuccess() {
         _state.update { current ->
             if (!current.isSuccess) current else current.copy(isSuccess = false)
         }
